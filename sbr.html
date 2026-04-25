@@ -257,8 +257,8 @@ canvas#signCanvas{display:block;width:100%;height:160px;touch-action:none;cursor
         <div style="height:14px"></div>
         <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px;">📷 教材圖片（最多6張）</div>
         <div id="photo-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;"></div>
-        <input type="file" id="photo-camera" accept="image/*" capture="environment" style="display:none" onchange="onPhotoSelect(event)">
-        <input type="file" id="photo-album" accept="image/*" style="display:none" onchange="onPhotoSelect(event)">
+        <input type="file" id="photo-camera" accept="image/*" capture="environment" style="display:none" onchange="onPhotoSelect(event,'camera')">
+        <input type="file" id="photo-album" accept="image/*" multiple style="display:none" onchange="onPhotoSelect(event,'album')">
         <div style="display:flex;gap:10px;"><button class="btn btn-ghost" onclick="clearAll()" style="flex:1">全部清除</button><button class="btn btn-primary" onclick="saveAsMaterial()" style="flex:2">💾 存為教材</button></div>
         <div style="height:10px"></div>
         <button class="btn btn-green" onclick="aiGenerateQuiz()">🤖 AI 從教材生成試題</button>
@@ -464,16 +464,25 @@ function goPage(id){
 
 let signCtx,signing=false;
 function initCanvas(){
-  const c=document.getElementById('signCanvas');const ratio=window.devicePixelRatio||1;
-  c.width=c.offsetWidth*ratio;c.height=160*ratio;signCtx=c.getContext('2d');signCtx.scale(ratio,ratio);
-  signCtx.strokeStyle='#1C1C1E';signCtx.lineWidth=2.5;signCtx.lineCap='round';signCtx.lineJoin='round';
-  const gp=e=>{const r=c.getBoundingClientRect(),t=e.touches?e.touches[0]:e;return{x:(t.clientX-r.left)*(c.width/r.width/(window.devicePixelRatio||1)),y:(t.clientY-r.top)*(c.height/r.height/(window.devicePixelRatio||1))};};
-  c.addEventListener('mousedown',e=>{signing=true;signCtx.beginPath();const p=gp(e);signCtx.moveTo(p.x,p.y);});
+  const c=document.getElementById('signCanvas');
+  function setupCanvas(){
+    const ratio=window.devicePixelRatio||1;
+    const w=c.parentElement.offsetWidth||300;
+    c.width=w*ratio;c.height=160*ratio;
+    c.style.width=w+'px';c.style.height='160px';
+    signCtx=c.getContext('2d');signCtx.scale(ratio,ratio);
+    signCtx.strokeStyle='#1C1C1E';signCtx.lineWidth=3;signCtx.lineCap='round';signCtx.lineJoin='round';
+  }
+  setupCanvas();
+  window.addEventListener('resize',setupCanvas);
+  const gp=e=>{const r=c.getBoundingClientRect(),t=e.touches?e.touches[0]:e;const ratio=window.devicePixelRatio||1;return{x:(t.clientX-r.left)*ratio,y:(t.clientY-r.top)*ratio};};
+  c.addEventListener('mousedown',e=>{signing=true;signCtx.beginPath();const p=gp(e);signCtx.moveTo(p.x,p.y);e.preventDefault();});
   c.addEventListener('mousemove',e=>{if(!signing)return;const p=gp(e);signCtx.lineTo(p.x,p.y);signCtx.stroke();});
   c.addEventListener('mouseup',()=>signing=false);
+  c.addEventListener('mouseleave',()=>signing=false);
   c.addEventListener('touchstart',e=>{e.preventDefault();signing=true;signCtx.beginPath();const p=gp(e);signCtx.moveTo(p.x,p.y);},{passive:false});
   c.addEventListener('touchmove',e=>{e.preventDefault();if(!signing)return;const p=gp(e);signCtx.lineTo(p.x,p.y);signCtx.stroke();},{passive:false});
-  c.addEventListener('touchend',()=>signing=false);
+  c.addEventListener('touchend',e=>{e.preventDefault();signing=false;},{passive:false});
 }
 function clearSign(){signCtx.clearRect(0,0,9999,9999);}
 function saveSign(){
@@ -492,14 +501,35 @@ function renderSignList(){
 
 function saveAsMaterial(){if(!document.getElementById('rec-text').value.trim()){toast('⚠️ 請先輸入教材內容');return;}document.getElementById('mat-title-input').value='';document.getElementById('modal-mat').classList.add('open');}
 function confirmSaveMat(){
-  const title=document.getElementById('mat-title-input').value.trim(),content=document.getElementById('rec-text').value.trim();
+  const title=document.getElementById('mat-title-input').value.trim();
+  const content=document.getElementById('rec-text').value.trim();
   if(!title){toast('⚠️ 請輸入教材名稱');return;}
-  db.materials.push({id:Date.now(),title,content,photos:[...photos],date:new Date().toLocaleDateString('zh-TW')});
-  photos=['','','','','',''];renderPhotoGrid();saveDB();closeModal('modal-mat');document.getElementById('rec-text').value='';toast('✅ 教材已儲存');renderMaterials();
+  if(!content){toast('⚠️ 教材內容不能為空');return;}
+  const matId=Date.now();
+  db.materials.push({id:matId,title,content,photos:[...photos],date:new Date().toLocaleDateString('zh-TW')});
+  photos=['','','','','',''];renderPhotoGrid();
+  saveDB();closeModal('modal-mat');
+  document.getElementById('rec-text').value='';
+  toast('✅ 教材「'+title+'」已儲存');
+  renderMaterials();
 }
 function renderMaterials(){
   const l=document.getElementById('mat-list');
-  l.innerHTML=db.materials.length?db.materials.map(m=>`<div class="mat-item" onclick="openMat(${m.id})"><div class="mat-icon">📄</div><div class="mat-info"><div class="mat-title">${m.title}</div><div class="mat-meta">${m.date}</div></div><span style="color:var(--text3)">›</span></div>`).join(''):'<div class="empty"><div class="empty-icon">📭</div><p>尚無教材，請等技術長上傳</p></div>';
+  if(!db.materials.length){l.innerHTML='<div class="empty"><div class="empty-icon">📭</div><p>尚無教材，請等技術長上傳</p></div>';return;}
+  l.innerHTML=db.materials.map(m=>`
+    <div class="mat-item">
+      <div class="mat-icon" onclick="openMat(${m.id})">📄</div>
+      <div class="mat-info" onclick="openMat(${m.id})" style="flex:1">
+        <div class="mat-title">${m.title}</div>
+        <div class="mat-meta">${m.date}</div>
+      </div>
+      ${isTeacher?`<button onclick="deleteMat(${m.id})" style="background:var(--red-lt);color:var(--red);border:none;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;">🗑 刪除</button>`:'<span style="color:var(--text3)">›</span>'}
+    </div>`).join('');
+}
+function deleteMat(id){
+  if(!confirm('確定要刪除這個教材嗎？')) return;
+  db.materials=db.materials.filter(x=>x.id!==id);
+  saveDB();renderMaterials();toast('🗑 教材已刪除');
 }
 function openMat(id){
   const m=db.materials.find(x=>x.id===id);if(!m)return;
@@ -677,28 +707,43 @@ function pickCamera(){closeModal('modal-photo-src');document.getElementById('pho
 function pickAlbum(){closeModal('modal-photo-src');document.getElementById('photo-album').value='';document.getElementById('photo-album').click();}
 function previewPhoto(i){if(!photos[i])return;document.getElementById('preview-img').src=photos[i];document.getElementById('preview-slot-idx').value=i;document.getElementById('modal-preview').classList.add('open');}
 function deletePreviewPhoto(){const i=parseInt(document.getElementById('preview-slot-idx').value);photos[i]='';renderPhotoGrid();closeModal('modal-preview');}
-function onPhotoSelect(e){
-  document.getElementById('photo-camera').value='';document.getElementById('photo-album').value='';
-  const file=e.target.files[0];if(!file)return;
-  if(file.size>20*1024*1024){toast('⚠️ 圖片太大，請選擇20MB以內');return;}
-  toast('📷 圖片處理中...');
-  const reader=new FileReader();
-  reader.onload=ev=>{
-    const img=new Image();
-    img.onload=()=>{
-      const c=document.createElement('canvas');
-      const max=600;let w=img.width,h=img.height;
-      if(w>h){if(w>max){h=Math.round(h*max/w);w=max;}}else{if(h>max){w=Math.round(w*max/h);h=max;}}
-      c.width=w;c.height=h;
-      c.getContext('2d').drawImage(img,0,0,w,h);
-      const idx=pendingSlot>=0?pendingSlot:photos.findIndex(p=>!p);
-      if(idx>=0){photos[idx]=c.toDataURL('image/jpeg',0.6);renderPhotoGrid();toast('✅ 圖片已加入');}
+function onPhotoSelect(e, src){
+  const files=Array.from(e.target.files||[]);
+  document.getElementById('photo-camera').value='';
+  document.getElementById('photo-album').value='';
+  if(!files.length)return;
+  let added=0;
+  files.forEach(file=>{
+    if(!file.type.startsWith('image/')){toast('⚠️ 請選擇圖片檔案');return;}
+    if(file.size>30*1024*1024){toast('⚠️ 圖片太大（超過30MB）');return;}
+    toast('📷 圖片處理中...');
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      const img=new Image();
+      img.onload=()=>{
+        try{
+          const c=document.createElement('canvas');
+          const max=800;let w=img.width,h=img.height;
+          if(w>h){if(w>max){h=Math.round(h*max/w);w=max;}}
+          else{if(h>max){w=Math.round(w*max/h);h=max;}}
+          if(w<1)w=1;if(h<1)h=1;
+          c.width=w;c.height=h;
+          const ctx=c.getContext('2d');
+          ctx.fillStyle='#ffffff';ctx.fillRect(0,0,w,h);
+          ctx.drawImage(img,0,0,w,h);
+          const idx=pendingSlot>=0&&added===0?pendingSlot:photos.findIndex(p=>!p);
+          if(idx>=0&&idx<6){
+            photos[idx]=c.toDataURL('image/jpeg',0.7);
+            added++;renderPhotoGrid();toast('✅ 圖片已加入（第'+(idx+1)+'格）');
+          } else {toast('⚠️ 圖片格已滿（最多6張）');}
+        }catch(err){toast('❌ 圖片處理失敗：'+err.message);}
+      };
+      img.onerror=()=>toast('❌ 圖片讀取失敗，請換一張試試');
+      img.src=ev.target.result;
     };
-    img.onerror=()=>toast('❌ 圖片讀取失敗');
-    img.src=ev.target.result;
-  };
-  reader.onerror=()=>toast('❌ 檔案讀取失敗');
-  reader.readAsDataURL(file);
+    reader.onerror=()=>toast('❌ 檔案讀取失敗');
+    reader.readAsDataURL(file);
+  });
 }
 function removePhoto(i){photos[i]='';renderPhotoGrid();}
 function clearAll(){document.getElementById('rec-text').value='';photos=['','','','','',''];renderPhotoGrid();}
@@ -725,7 +770,11 @@ async function aiGenerateQuiz(){
     const resp=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})});
     const data=await resp.json();
     const raw=data.candidates?.[0]?.content?.parts?.[0]?.text||'[]';
-    const qs=JSON.parse(raw.replace(/```json|```/g,'').trim());
+    let clean=raw.replace(/```json|```/g,'').trim();
+    const start=clean.indexOf('['),end=clean.lastIndexOf(']');
+    if(start>=0&&end>start)clean=clean.slice(start,end+1);
+    const qs=JSON.parse(clean);
+    if(!Array.isArray(qs)||qs.length===0)throw new Error('AI 沒有回傳題目，請重試');
     qs.forEach(q=>{db.questions.push({id:Date.now()+Math.random(),q:q.q,a:q.a,b:q.b,c:q.c||'',d:q.d||'',ans:q.ans,exp:q.exp||''});});
     saveDB();document.getElementById('modal-ai').classList.remove('open');renderQuizEditor();toast(`✅ AI 已生成 ${qs.length} 題`);
   }catch(e){document.getElementById('modal-ai').classList.remove('open');toast('❌ AI 生成失敗：'+e.message);}
