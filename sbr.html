@@ -7,6 +7,7 @@
 <title>SBR 技術長訓練系統</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0C3A6B">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
 :root{
@@ -14,16 +15,13 @@
   --green:#2A7D1A;--green-lt:#E5F5E0;
   --red:#C0392B;--red-lt:#FDEDEC;
   --amber:#B7770D;--amber-lt:#FEF9E7;
+  --purple:#6B21A8;--purple-lt:#F3E8FF;
   --text:#1C1C1E;--text2:#636366;--text3:#AEAEB2;
-  --bg:#F2F2F7;--card:#fff;
-  --border:rgba(0,0,0,0.09);
-  --safe-top:env(safe-area-inset-top,0px);
-  --safe-bot:env(safe-area-inset-bottom,0px);
+  --bg:#F2F2F7;--card:#fff;--border:rgba(0,0,0,0.09);
+  --safe-top:env(safe-area-inset-top,0px);--safe-bot:env(safe-area-inset-bottom,0px);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:calc(72px + var(--safe-bot));}
-
-/* SPLASH */
 #splash{position:fixed;inset:0;background:var(--blue-dk);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity .5s;}
 #splash.out{opacity:0;pointer-events:none;}
 .sp-logo{width:88px;height:88px;background:rgba(255,255,255,0.12);border:2px solid rgba(255,255,255,0.25);border-radius:22px;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900;color:#fff;letter-spacing:-2px;margin-bottom:18px;}
@@ -31,174 +29,100 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
 .sp-sub{color:rgba(255,255,255,0.55);font-size:13px;}
 .sp-dots{display:flex;gap:8px;margin-top:36px;}
 .sp-dots span{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.35);animation:pulse 1.2s infinite;}
-.sp-dots span:nth-child(2){animation-delay:.2s;}
-.sp-dots span:nth-child(3){animation-delay:.4s;}
+.sp-dots span:nth-child(2){animation-delay:.2s;}.sp-dots span:nth-child(3){animation-delay:.4s;}
 @keyframes pulse{0%,80%,100%{opacity:.25}40%{opacity:1}}
-
-/* HEADER */
 .hdr{background:var(--blue-dk);padding:calc(var(--safe-top) + 14px) 16px 14px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:100;}
 .hdr-logo{width:36px;height:36px;background:rgba(255,255,255,0.12);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:#fff;letter-spacing:-1px;flex-shrink:0;}
-.hdr-info{flex:1;}
-.hdr-title{color:#fff;font-size:15px;font-weight:800;}
-.hdr-sub{color:rgba(255,255,255,0.5);font-size:11px;}
+.hdr-info{flex:1;}.hdr-title{color:#fff;font-size:15px;font-weight:800;}.hdr-sub{color:rgba(255,255,255,0.5);font-size:11px;}
 .hdr-mode{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:20px;padding:5px 12px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;}
 .hdr-mode.teacher{background:rgba(239,159,39,0.25);border-color:rgba(239,159,39,0.5);color:#EF9F27;}
-
-/* BOTTOM NAV */
 .nav{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,0.97);backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;padding-bottom:var(--safe-bot);z-index:100;}
 .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:10px 4px 8px;cursor:pointer;color:var(--text3);transition:color .2s;}
-.nav-item.act{color:var(--blue);}
-.nav-item.locked{opacity:.35;pointer-events:none;}
-.nav-icon{font-size:22px;line-height:1;margin-bottom:3px;}
-.nav-lbl{font-size:10px;font-weight:700;}
-
-/* PAGE */
-.page{display:none;padding:16px;}
-.page.act{display:block;animation:fadeUp .2s ease;}
+.nav-item.act{color:var(--blue);}.nav-icon{font-size:22px;line-height:1;margin-bottom:3px;}.nav-lbl{font-size:10px;font-weight:700;}
+.page{display:none;padding:16px;}.page.act{display:block;animation:fadeUp .2s ease;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-
-/* SECTION LABEL */
-.sec-lbl{font-size:11px;font-weight:800;color:var(--text3);letter-spacing:.6px;text-transform:uppercase;margin:20px 4px 8px;}
-.sec-lbl:first-child{margin-top:4px;}
-
-/* CARD */
+.sec-lbl{font-size:11px;font-weight:800;color:var(--text3);letter-spacing:.6px;text-transform:uppercase;margin:20px 4px 8px;}.sec-lbl:first-child{margin-top:4px;}
 .card{background:var(--card);border-radius:14px;overflow:hidden;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,0.07);}
-.card-hdr{padding:14px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);}
-.card-hdr h3{font-size:14px;font-weight:800;flex:1;}
+.card-hdr{padding:14px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);}.card-hdr h3{font-size:14px;font-weight:800;flex:1;}
 .card-body{padding:16px;}
-
-/* STUDENT SELECT */
 .select-wrap{background:var(--card);border-radius:14px;padding:16px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,0.07);}
 .select-wrap label{display:block;font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px;}
 .sel{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;font-family:inherit;color:var(--text);background:#fff;outline:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M0 0l6 8 6-8z' fill='%23999'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;}
 .sel:focus{border-color:var(--blue);}
-
-/* SIGN CANVAS */
 .sign-canvas-wrap{background:#fff;border:2px dashed var(--border);border-radius:12px;overflow:hidden;margin-bottom:12px;}
 canvas#signCanvas{display:block;width:100%;height:160px;touch-action:none;cursor:crosshair;}
 .sign-hint{text-align:center;font-size:12px;color:var(--text3);padding:8px;border-top:1px solid var(--border);}
-
-/* BUTTONS */
 .btn{padding:12px 20px;border-radius:12px;font-size:14px;font-weight:700;border:none;cursor:pointer;font-family:inherit;transition:all .15s;display:inline-flex;align-items:center;gap:6px;justify-content:center;}
-.btn:active{transform:scale(.97);}
-.btn-primary{background:var(--blue);color:#fff;width:100%;}
-.btn-green{background:var(--green);color:#fff;width:100%;}
-.btn-red{background:var(--red-lt);color:var(--red);}
-.btn-ghost{background:var(--bg);color:var(--text2);width:100%;}
+.btn:active{transform:scale(.97);}.btn-primary{background:var(--blue);color:#fff;width:100%;}.btn-green{background:var(--green);color:#fff;width:100%;}
+.btn-purple{background:var(--purple);color:#fff;width:100%;}.btn-ghost{background:var(--bg);color:var(--text2);width:100%;}
 .btn-sm{padding:6px 14px;font-size:12px;border-radius:8px;}
 .btn-record{background:#fff;border:2px solid var(--red);color:var(--red);width:100%;font-size:15px;}
 .btn-record.recording{background:var(--red);color:#fff;animation:blink-btn .8s infinite;}
 @keyframes blink-btn{0%,100%{opacity:1}50%{opacity:.7}}
-
-/* QUIZ */
 .quiz-q{font-size:15px;font-weight:700;line-height:1.5;margin-bottom:14px;}
 .quiz-opts{display:flex;flex-direction:column;gap:8px;margin-bottom:16px;}
 .quiz-opt{padding:12px 14px;border-radius:10px;border:1.5px solid var(--border);font-size:14px;cursor:pointer;transition:all .15s;background:#fff;}
-.quiz-opt:active{transform:scale(.98);}
-.quiz-opt.selected{border-color:var(--blue);background:var(--blue-lt);}
-.quiz-opt.correct{border-color:var(--green);background:var(--green-lt);}
-.quiz-opt.wrong{border-color:var(--red);background:var(--red-lt);}
+.quiz-opt:active{transform:scale(.98);}.quiz-opt.correct{border-color:var(--green);background:var(--green-lt);}.quiz-opt.wrong{border-color:var(--red);background:var(--red-lt);}
 .quiz-progress{text-align:right;font-size:12px;color:var(--text3);margin-bottom:12px;}
 .quiz-result-box{text-align:center;padding:24px 16px;}
-.quiz-score{font-size:56px;font-weight:900;line-height:1;}
-.quiz-score.pass{color:var(--green);}
-.quiz-score.fail{color:var(--red);}
-
-/* SCORE LIST */
-.score-item{display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid var(--border);}
-.score-item:last-child{border-bottom:none;}
+.quiz-score{font-size:56px;font-weight:900;line-height:1;}.quiz-score.pass{color:var(--green);}.quiz-score.fail{color:var(--red);}
+.score-item{display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid var(--border);}.score-item:last-child{border-bottom:none;}
 .score-rank{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;}
-.score-name{flex:1;font-size:14px;font-weight:600;}
-.score-val{font-size:16px;font-weight:800;}
-
-/* MATERIAL ITEM */
-.mat-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;}
-.mat-item:last-child{border-bottom:none;}
+.mat-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;}.mat-item:last-child{border-bottom:none;}
 .mat-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;background:var(--blue-lt);}
-.mat-info{flex:1;}
-.mat-title{font-size:14px;font-weight:700;}
-.mat-meta{font-size:11px;color:var(--text3);margin-top:2px;}
-
-/* TEACHER: edit quiz */
+.mat-info{flex:1;}.mat-title{font-size:14px;font-weight:700;}.mat-meta{font-size:11px;color:var(--text3);margin-top:2px;}
 .eq-item{background:#fafafa;border-radius:10px;padding:12px;margin-bottom:10px;border:1px solid var(--border);}
 .eq-q{font-size:13px;font-weight:700;margin-bottom:8px;color:var(--text);}
 .eq-opts{display:flex;flex-direction:column;gap:4px;}
-.eq-opt{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);}
-.eq-opt input[type=radio]{accent-color:var(--green);}
-.eq-opt-text{flex:1;border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:12px;font-family:inherit;}
-
-/* STAT GRID */
+.eq-opt{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);}.eq-opt input[type=radio]{accent-color:var(--green);}
 .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
 .stat-box{background:var(--card);border-radius:12px;padding:14px;box-shadow:0 1px 3px rgba(0,0,0,0.07);}
-.stat-lbl{font-size:11px;color:var(--text3);font-weight:700;margin-bottom:4px;}
-.stat-val{font-size:28px;font-weight:900;line-height:1;}
-
-/* MODAL */
-.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;align-items:flex-end;justify-content:center;}
-.modal-bg.open{display:flex;}
+.stat-lbl{font-size:11px;color:var(--text3);font-weight:700;margin-bottom:4px;}.stat-val{font-size:28px;font-weight:900;line-height:1;}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;align-items:flex-end;justify-content:center;}.modal-bg.open{display:flex;}
 .modal{background:#fff;border-radius:20px 20px 0 0;padding:20px 20px calc(20px + var(--safe-bot));width:100%;max-height:88vh;overflow-y:auto;animation:slideUp .3s ease;}
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:none}}
 .modal-handle{width:40px;height:4px;background:#ddd;border-radius:99px;margin:0 auto 16px;}
 .modal-title{font-size:18px;font-weight:900;margin-bottom:16px;}
-.form-group{margin-bottom:14px;}
-.form-lbl{font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px;display:block;}
+.form-group{margin-bottom:14px;}.form-lbl{font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px;display:block;}
 .form-input{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;font-family:inherit;outline:none;transition:border .2s;}
-.form-input:focus{border-color:var(--blue);}
-textarea.form-input{min-height:80px;resize:vertical;}
-
-/* TOAST */
+.form-input:focus{border-color:var(--blue);}textarea.form-input{min-height:80px;resize:vertical;}
 #toast{position:fixed;bottom:calc(80px + var(--safe-bot));left:50%;transform:translateX(-50%) translateY(12px);background:rgba(20,20,20,.92);color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;z-index:9000;}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
-
-
-/* PHOTO GRID */
 .photo-slot{aspect-ratio:1;border-radius:10px;border:2px dashed var(--border);background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative;transition:border-color .2s;}
-.photo-slot:hover{border-color:var(--blue);}
-.photo-slot img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;}
-.photo-slot .slot-add{font-size:22px;color:var(--text3);}
-.photo-slot .slot-num{font-size:10px;color:var(--text3);margin-top:4px;font-weight:700;}
+.photo-slot:hover{border-color:var(--blue);}.photo-slot img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;}
+.photo-slot .slot-add{font-size:22px;color:var(--text3);}.photo-slot .slot-num{font-size:10px;color:var(--text3);margin-top:4px;font-weight:700;}
 .photo-slot .slot-del{position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,0.55);color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center;z-index:2;}
-
-/* MISC */
-.divider{height:1px;background:var(--border);margin:0 -16px;}
-.empty{text-align:center;padding:40px 20px;color:var(--text3);}
-.empty-icon{font-size:40px;margin-bottom:10px;}
+/* QR */
+.qr-container{display:flex;flex-direction:column;align-items:center;padding:20px;background:linear-gradient(135deg,var(--blue-dk),var(--blue));border-radius:16px;margin-bottom:14px;}
+.qr-box{background:#fff;padding:16px;border-radius:12px;margin-bottom:14px;}
+.qr-title{color:#fff;font-size:16px;font-weight:900;margin-bottom:4px;text-align:center;}
+.qr-sub{color:rgba(255,255,255,0.65);font-size:12px;text-align:center;}
+.qr-url{background:rgba(255,255,255,0.12);border-radius:8px;padding:8px 12px;color:rgba(255,255,255,0.8);font-size:11px;word-break:break-all;text-align:center;margin-top:10px;}
+.exam-mode-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;}
+.exam-mode-open{background:var(--green-lt);color:var(--green);}.exam-mode-closed{background:var(--red-lt);color:var(--red);}
 .tag{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;}
-.tag-blue{background:var(--blue-lt);color:var(--blue);}
-.tag-green{background:var(--green-lt);color:var(--green);}
-.tag-red{background:var(--red-lt);color:var(--red);}
-.tag-amber{background:var(--amber-lt);color:var(--amber);}
+.tag-blue{background:var(--blue-lt);color:var(--blue);}.tag-green{background:var(--green-lt);color:var(--green);}.tag-red{background:var(--red-lt);color:var(--red);}.tag-amber{background:var(--amber-lt);color:var(--amber);}
 .recording-indicator{display:none;align-items:center;gap:8px;padding:10px 14px;background:var(--red-lt);border-radius:10px;margin-bottom:10px;font-size:13px;color:var(--red);font-weight:700;}
-.recording-indicator.show{display:flex;}
-.rec-dot{width:10px;height:10px;border-radius:50%;background:var(--red);animation:blink-btn .6s infinite;}
+.recording-indicator.show{display:flex;}.rec-dot{width:10px;height:10px;border-radius:50%;background:var(--red);animation:blink-btn .6s infinite;}
 </style>
-<!-- Firebase compat SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
-
-<!-- SPLASH -->
 <div id="splash">
   <div class="sp-logo">SBR</div>
   <div class="sp-title">技術長訓練系統</div>
   <div class="sp-sub">永康廠・歸仁廠</div>
   <div class="sp-dots"><span></span><span></span><span></span></div>
 </div>
-
-<!-- HEADER -->
 <div class="hdr">
   <div class="hdr-logo">SBR</div>
-  <div class="hdr-info">
-    <div class="hdr-title">技術長訓練系統</div>
-    <div class="hdr-sub" id="hdr-sub">請先選擇姓名</div>
-  </div>
+  <div class="hdr-info"><div class="hdr-title">技術長訓練系統</div><div class="hdr-sub" id="hdr-sub">請先選擇姓名</div></div>
   <div class="hdr-mode" id="mode-btn" onclick="toggleMode()">技術長</div>
 </div>
-<!-- 同步狀態列 -->
 <div id="sync-status" style="background:var(--blue);color:#fff;font-size:11px;font-weight:700;text-align:center;padding:4px;opacity:0;transition:opacity .3s;"></div>
 
-<!-- PAGE 0：學員首頁 -->
+<!-- PAGE 0 首頁 -->
 <div class="page act" id="page-home">
   <div class="select-wrap">
     <label>請選擇您的廠別與姓名</label>
@@ -208,152 +132,120 @@ textarea.form-input{min-height:80px;resize:vertical;}
       <option value="歸仁">歸仁廠</option>
     </select>
     <div style="height:10px"></div>
-    <select class="sel" id="name-sel" onchange="onNameChange()">
-      <option value="">── 選擇姓名 ──</option>
-    </select>
+    <select class="sel" id="name-sel" onchange="onNameChange()"><option value="">── 選擇姓名 ──</option></select>
   </div>
-
   <div class="sec-lbl">我的狀態</div>
   <div class="stat-grid">
     <div class="stat-box"><div class="stat-lbl">最近成績</div><div class="stat-val" id="my-score" style="color:var(--blue)">—</div></div>
     <div class="stat-box"><div class="stat-lbl">簽到狀態</div><div class="stat-val" id="my-sign" style="font-size:22px">—</div></div>
   </div>
-
   <div class="sec-lbl">功能入口</div>
   <div class="card">
-    <div class="mat-item" onclick="goPage('sign')">
-      <div class="mat-icon">✍️</div>
-      <div class="mat-info"><div class="mat-title">簽到簽名</div><div class="mat-meta">手寫簽名確認出席</div></div>
-      <span style="color:var(--text3)">›</span>
-    </div>
-    <div class="mat-item" onclick="goPage('material')">
-      <div class="mat-icon">📚</div>
-      <div class="mat-info"><div class="mat-title">訓練教材</div><div class="mat-meta">查看本期教材內容</div></div>
-      <span style="color:var(--text3)">›</span>
-    </div>
-    <div class="mat-item" onclick="startExam()">
-      <div class="mat-icon">📝</div>
-      <div class="mat-info"><div class="mat-title">開始考試</div><div class="mat-meta">測驗本期課程內容</div></div>
-      <span style="color:var(--text3)">›</span>
-    </div>
-    <div class="mat-item" onclick="goPage('score')">
-      <div class="mat-icon">📊</div>
-      <div class="mat-info"><div class="mat-title">成績查詢</div><div class="mat-meta">查看歷次測驗成績</div></div>
-      <span style="color:var(--text3)">›</span>
-    </div>
+    <div class="mat-item" onclick="goPage('sign')"><div class="mat-icon">✍️</div><div class="mat-info"><div class="mat-title">簽到簽名</div><div class="mat-meta">手寫簽名確認出席</div></div><span style="color:var(--text3)">›</span></div>
+    <div class="mat-item" onclick="goPage('material')"><div class="mat-icon">📚</div><div class="mat-info"><div class="mat-title">訓練教材</div><div class="mat-meta">查看本期教材內容</div></div><span style="color:var(--text3)">›</span></div>
+    <div class="mat-item" onclick="startExam()"><div class="mat-icon">📝</div><div class="mat-info"><div class="mat-title">開始考試</div><div class="mat-meta" id="home-exam-status">測驗本期課程內容</div></div><span style="color:var(--text3)">›</span></div>
+    <div class="mat-item" onclick="goPage('score')"><div class="mat-icon">📊</div><div class="mat-info"><div class="mat-title">成績查詢</div><div class="mat-meta">查看歷次測驗成績</div></div><span style="color:var(--text3)">›</span></div>
   </div>
 </div>
 
-<!-- PAGE 1：簽到 -->
+<!-- PAGE 1 簽到 -->
 <div class="page" id="page-sign">
   <div class="sec-lbl">手寫簽名</div>
   <div class="card-body" style="background:#fff;border-radius:14px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,0.07);">
     <div style="font-size:13px;color:var(--text2);margin-bottom:10px;">學員：<strong id="sign-name-display">—</strong></div>
-    <div class="sign-canvas-wrap">
-      <canvas id="signCanvas"></canvas>
-      <div class="sign-hint">請在上方空白處簽名</div>
-    </div>
-    <div style="display:flex;gap:10px;">
-      <button class="btn btn-ghost" onclick="clearSign()" style="flex:1">清除</button>
-      <button class="btn btn-primary" onclick="saveSign()" style="flex:2">確認簽到</button>
-    </div>
+    <div class="sign-canvas-wrap"><canvas id="signCanvas"></canvas><div class="sign-hint">請在上方空白處簽名</div></div>
+    <div style="display:flex;gap:10px;"><button class="btn btn-ghost" onclick="clearSign()" style="flex:1">清除</button><button class="btn btn-primary" onclick="saveSign()" style="flex:2">確認簽到</button></div>
   </div>
-
   <div class="sec-lbl">本期簽到記錄</div>
   <div class="card" id="sign-list"></div>
 </div>
 
-<!-- PAGE 2：教材 -->
+<!-- PAGE 2 教材 -->
 <div class="page" id="page-material">
   <div class="sec-lbl">本期教材</div>
-  <div class="card" id="mat-list">
-    <div class="empty"><div class="empty-icon">📭</div><p>尚無教材，請等技術長上傳</p></div>
-  </div>
-
-  <!-- 教材詳細內容 -->
+  <div class="card" id="mat-list"><div class="empty"><div class="empty-icon">📭</div><p>尚無教材，請等技術長上傳</p></div></div>
   <div id="mat-detail" style="display:none;">
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
-      <button class="btn btn-ghost btn-sm" onclick="closeMat()">← 返回</button>
-      <span id="mat-detail-title" style="font-size:15px;font-weight:800;"></span>
-    </div>
-    <div class="card">
-      <div class="card-body" id="mat-detail-body" style="font-size:14px;line-height:1.8;white-space:pre-wrap;"></div>
-    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;"><button class="btn btn-ghost btn-sm" onclick="closeMat()">← 返回</button><span id="mat-detail-title" style="font-size:15px;font-weight:800;"></span></div>
+    <div class="card"><div class="card-body" id="mat-detail-body" style="font-size:14px;line-height:1.8;white-space:pre-wrap;"></div></div>
   </div>
 </div>
 
-<!-- PAGE 3：考試 -->
+<!-- PAGE 3 考試 -->
 <div class="page" id="page-exam">
-  <!-- 考試前 -->
   <div id="exam-ready">
     <div class="sec-lbl">課程測驗</div>
-    <div class="card">
-      <div class="card-body" style="text-align:center;padding:24px;">
-        <div style="font-size:48px;margin-bottom:12px;">📝</div>
-        <div style="font-size:16px;font-weight:800;margin-bottom:8px;" id="exam-info-title">尚無題目</div>
-        <div style="font-size:13px;color:var(--text2);margin-bottom:20px;" id="exam-info-sub">請等技術長建立測驗</div>
-        <button class="btn btn-primary" onclick="beginExam()" id="begin-btn" style="display:none;">開始測驗</button>
-      </div>
-    </div>
+    <div class="card"><div class="card-body" style="text-align:center;padding:24px;">
+      <div style="font-size:48px;margin-bottom:12px;">📝</div>
+      <div style="font-size:16px;font-weight:800;margin-bottom:8px;" id="exam-info-title">尚無題目</div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:16px;" id="exam-info-sub">請等技術長建立測驗</div>
+      <div id="exam-status-display" style="margin-bottom:16px;"></div>
+      <button class="btn btn-primary" onclick="beginExam()" id="begin-btn" style="display:none;">開始測驗</button>
+    </div></div>
   </div>
-  <!-- 作答中 -->
   <div id="exam-doing" style="display:none;">
     <div class="quiz-progress" id="q-progress"></div>
-    <div class="card">
-      <div class="card-body">
-        <div class="quiz-q" id="q-text"></div>
-        <div class="quiz-opts" id="q-opts"></div>
-        <button class="btn btn-primary" onclick="nextQ()" id="next-btn" style="display:none;">下一題</button>
-      </div>
-    </div>
+    <div class="card"><div class="card-body"><div class="quiz-q" id="q-text"></div><div class="quiz-opts" id="q-opts"></div><button class="btn btn-primary" onclick="nextQ()" id="next-btn" style="display:none;">下一題</button></div></div>
   </div>
-  <!-- 結果 -->
   <div id="exam-result" style="display:none;">
-    <div class="card">
-      <div class="quiz-result-box">
-        <div style="font-size:14px;color:var(--text2);margin-bottom:8px;">測驗完成！</div>
-        <div class="quiz-score" id="result-score"></div>
-        <div style="font-size:13px;color:var(--text2);margin-top:8px;" id="result-detail"></div>
-        <div style="margin-top:20px;display:flex;flex-direction:column;gap:10px;">
-          <button class="btn btn-primary" onclick="reviewAnswers()">查看答案解析</button>
-          <button class="btn btn-ghost" onclick="resetExam()">返回</button>
-        </div>
+    <div class="card"><div class="quiz-result-box">
+      <div style="font-size:14px;color:var(--text2);margin-bottom:8px;">測驗完成！</div>
+      <div class="quiz-score" id="result-score"></div>
+      <div style="font-size:13px;color:var(--text2);margin-top:8px;" id="result-detail"></div>
+      <div style="margin-top:20px;display:flex;flex-direction:column;gap:10px;">
+        <button class="btn btn-primary" onclick="reviewAnswers()">查看答案解析</button>
+        <button class="btn btn-ghost" onclick="resetExam()">返回</button>
       </div>
-    </div>
+    </div></div>
     <div id="review-list" style="display:none;margin-top:12px;"></div>
   </div>
 </div>
 
-<!-- PAGE 4：成績 -->
+<!-- PAGE 4 成績 -->
 <div class="page" id="page-score">
   <div class="sec-lbl">成績排行</div>
-  <div class="card" id="score-list">
-    <div class="empty"><div class="empty-icon">🏆</div><p>尚無成績記錄</p></div>
-  </div>
+  <div class="card" id="score-list"><div class="empty"><div class="empty-icon">🏆</div><p>尚無成績記錄</p></div></div>
 </div>
 
-<!-- PAGE 5：技術長（鎖） -->
+<!-- PAGE 5 技術長 -->
 <div class="page" id="page-teacher">
-  <!-- 未解鎖 -->
   <div id="teacher-lock">
     <div class="sec-lbl">技術長功能</div>
-    <div class="card">
-      <div class="card-body" style="text-align:center;padding:32px;">
-        <div style="font-size:48px;margin-bottom:16px;">🔐</div>
-        <div style="font-size:18px;font-weight:900;margin-bottom:4px;">蘇博仁 技術長</div>
-        <div style="font-size:13px;color:var(--text2);margin-bottom:20px;">請輸入密碼解鎖</div>
-        <input class="form-input" id="pw-input" type="password" placeholder="密碼" style="text-align:center;font-size:22px;letter-spacing:8px;margin-bottom:14px;" maxlength="8" onkeydown="if(event.key==='Enter')checkPw()">
-        <button class="btn btn-primary" onclick="checkPw()">解鎖</button>
-      </div>
-    </div>
+    <div class="card"><div class="card-body" style="text-align:center;padding:32px;">
+      <div style="font-size:48px;margin-bottom:16px;">🔐</div>
+      <div style="font-size:18px;font-weight:900;margin-bottom:4px;">蘇博仁 技術長</div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:20px;">請輸入密碼解鎖</div>
+      <input class="form-input" id="pw-input" type="password" placeholder="密碼" style="text-align:center;font-size:22px;letter-spacing:8px;margin-bottom:14px;" maxlength="8" onkeydown="if(event.key==='Enter')checkPw()">
+      <button class="btn btn-primary" onclick="checkPw()">解鎖</button>
+    </div></div>
   </div>
-
-  <!-- 已解鎖 -->
   <div id="teacher-panel" style="display:none;">
     <div style="background:linear-gradient(135deg,var(--blue-dk),var(--blue));border-radius:14px;padding:16px;margin-bottom:4px;display:flex;align-items:center;gap:12px;">
       <div style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#fff;">蘇</div>
       <div><div style="color:#fff;font-size:16px;font-weight:900;">蘇博仁 技術長</div><div style="color:rgba(255,255,255,0.6);font-size:12px;">永康廠 ｜ 技術長模式</div></div>
     </div>
+
+    <!-- ★ QR碼管理 -->
+    <div class="sec-lbl">考試 QR 碼</div>
+    <div class="card">
+      <div class="card-hdr"><h3>📲 產生考試 QR 碼</h3><div id="exam-open-badge"></div></div>
+      <div class="card-body">
+        <p style="font-size:13px;color:var(--text2);margin-bottom:14px;">產生 QR 碼後，學員用手機掃描即可直接進入考試頁面。</p>
+        <div style="display:flex;gap:10px;margin-bottom:14px;">
+          <button class="btn btn-purple" onclick="generateQR()" style="flex:1;">🔲 產生 QR 碼</button>
+          <button class="btn" id="exam-toggle-btn" onclick="toggleExamOpen()" style="flex:1;font-weight:700;">✅ 開放考試</button>
+        </div>
+        <div id="qr-area" style="display:none;">
+          <div class="qr-container">
+            <div class="qr-title">SBR 技術長訓練系統</div>
+            <div class="qr-sub">掃描 QR 碼進入考試</div>
+            <div class="qr-box" style="margin-top:14px;"><div id="qr-code-div"></div></div>
+            <div class="qr-url" id="qr-url-display"></div>
+          </div>
+          <button class="btn btn-ghost" onclick="saveQRImage()">💾 儲存 QR 圖片</button>
+        </div>
+      </div>
+    </div>
+
     <div class="sec-lbl">備課工具</div>
     <div class="card">
       <div class="card-hdr"><h3>🎙️ 語音備課</h3></div>
@@ -367,10 +259,7 @@ textarea.form-input{min-height:80px;resize:vertical;}
         <div id="photo-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;"></div>
         <input type="file" id="photo-camera" accept="image/*" capture="environment" style="display:none" onchange="onPhotoSelect(event)">
         <input type="file" id="photo-album" accept="image/*" style="display:none" onchange="onPhotoSelect(event)">
-        <div style="display:flex;gap:10px;">
-          <button class="btn btn-ghost" onclick="clearAll()" style="flex:1">全部清除</button>
-          <button class="btn btn-primary" onclick="saveAsMaterial()" style="flex:2">💾 存為教材</button>
-        </div>
+        <div style="display:flex;gap:10px;"><button class="btn btn-ghost" onclick="clearAll()" style="flex:1">全部清除</button><button class="btn btn-primary" onclick="saveAsMaterial()" style="flex:2">💾 存為教材</button></div>
         <div style="height:10px"></div>
         <button class="btn btn-green" onclick="aiGenerateQuiz()">🤖 AI 從教材生成試題</button>
       </div>
@@ -378,42 +267,32 @@ textarea.form-input{min-height:80px;resize:vertical;}
 
     <div class="sec-lbl">題庫管理</div>
     <div class="card">
-      <div class="card-hdr">
-        <h3>📋 目前題目</h3>
-        <button class="btn btn-sm tag-blue" onclick="openAddQ()">＋ 手動新增</button>
-      </div>
+      <div class="card-hdr"><h3>📋 目前題目</h3><button class="btn btn-sm tag-blue" onclick="openAddQ()">＋ 手動新增</button></div>
       <div id="quiz-editor"></div>
     </div>
 
+    <!-- ★ 學員成績總覽 -->
     <div class="sec-lbl">學員成績總覽</div>
     <div class="card">
       <div class="card-hdr">
         <h3>📊 各學員成績</h3>
-        <div style="display:flex;gap:6px;align-items:center;">
-          <select class="sel" id="score-site-filter" onchange="renderTeacherScores()" style="padding:5px 28px 5px 10px;font-size:12px;border-radius:8px;">
-            <option value="all">全部</option>
-            <option value="永康">永康廠</option>
-            <option value="歸仁">歸仁廠</option>
-          </select>
-        </div>
+        <select class="sel" id="score-site-filter" onchange="renderTeacherScores()" style="padding:5px 28px 5px 10px;font-size:12px;border-radius:8px;">
+          <option value="all">全部</option><option value="永康">永康廠</option><option value="歸仁">歸仁廠</option>
+        </select>
       </div>
+      <div id="score-summary" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border-bottom:1px solid var(--border);"></div>
       <div id="teacher-score-list"></div>
     </div>
 
-    <!-- 學員個人圖表 modal 觸發 -->
     <div class="sec-lbl">出席總覽</div>
     <div class="card">
       <div class="card-hdr"><h3>✅ 今日簽到</h3><span class="tag tag-blue" id="sign-count-badge">0人</span></div>
       <div id="teacher-sign-list"></div>
     </div>
-
-    <div style="padding-bottom:8px;">
-      <button class="btn btn-red" style="width:100%;" onclick="lockTeacher()">🔒 鎖定技術長模式</button>
-    </div>
+    <div style="padding-bottom:8px;"><button class="btn" style="width:100%;background:var(--red-lt);color:var(--red);font-weight:700;" onclick="lockTeacher()">🔒 鎖定技術長模式</button></div>
   </div>
 </div>
 
-<!-- BOTTOM NAV -->
 <div class="nav">
   <div class="nav-item act" id="nav-home" onclick="goPage('home')"><div class="nav-icon">🏠</div><div class="nav-lbl">首頁</div></div>
   <div class="nav-item" id="nav-sign" onclick="goPage('sign')"><div class="nav-icon">✍️</div><div class="nav-lbl">簽到</div></div>
@@ -422,140 +301,76 @@ textarea.form-input{min-height:80px;resize:vertical;}
   <div class="nav-item" id="nav-score" onclick="goPage('score')"><div class="nav-icon">📊</div><div class="nav-lbl">成績</div></div>
   <div class="nav-item" id="nav-teacher" onclick="goPage('teacher')"><div class="nav-icon">🔐</div><div class="nav-lbl">技術長</div></div>
 </div>
-
-<!-- TOAST -->
 <div id="toast"></div>
 
-<!-- MODAL：新增題目 -->
+<!-- MODAL 新增題目 -->
 <div class="modal-bg" id="modal-addq" onclick="closeModal('modal-addq')">
   <div class="modal" onclick="event.stopPropagation()">
-    <div class="modal-handle"></div>
-    <div class="modal-title">新增題目</div>
-    <div class="form-group">
-      <label class="form-lbl">題目內容 *</label>
-      <textarea class="form-input" id="aq-q" placeholder="請輸入題目"></textarea>
-    </div>
-    <div class="form-group">
-      <label class="form-lbl">選項 A *</label>
-      <input class="form-input" id="aq-a" placeholder="選項 A">
-    </div>
-    <div class="form-group">
-      <label class="form-lbl">選項 B *</label>
-      <input class="form-input" id="aq-b" placeholder="選項 B">
-    </div>
-    <div class="form-group">
-      <label class="form-lbl">選項 C</label>
-      <input class="form-input" id="aq-c" placeholder="選項 C（可留空）">
-    </div>
-    <div class="form-group">
-      <label class="form-lbl">選項 D</label>
-      <input class="form-input" id="aq-d" placeholder="選項 D（可留空）">
-    </div>
-    <div class="form-group">
-      <label class="form-lbl">正確答案 *</label>
-      <select class="sel" id="aq-ans">
-        <option value="A">A</option>
-        <option value="B">B</option>
-        <option value="C">C</option>
-        <option value="D">D</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label class="form-lbl">解析說明（選填）</label>
-      <textarea class="form-input" id="aq-exp" placeholder="答案解析..."></textarea>
-    </div>
+    <div class="modal-handle"></div><div class="modal-title">新增題目</div>
+    <div class="form-group"><label class="form-lbl">題目內容 *</label><textarea class="form-input" id="aq-q" placeholder="請輸入題目"></textarea></div>
+    <div class="form-group"><label class="form-lbl">選項 A *</label><input class="form-input" id="aq-a" placeholder="選項 A"></div>
+    <div class="form-group"><label class="form-lbl">選項 B *</label><input class="form-input" id="aq-b" placeholder="選項 B"></div>
+    <div class="form-group"><label class="form-lbl">選項 C</label><input class="form-input" id="aq-c" placeholder="選項 C（可留空）"></div>
+    <div class="form-group"><label class="form-lbl">選項 D</label><input class="form-input" id="aq-d" placeholder="選項 D（可留空）"></div>
+    <div class="form-group"><label class="form-lbl">正確答案 *</label><select class="sel" id="aq-ans"><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option></select></div>
+    <div class="form-group"><label class="form-lbl">解析說明（選填）</label><textarea class="form-input" id="aq-exp" placeholder="答案解析..."></textarea></div>
     <button class="btn btn-primary" onclick="saveQ()">新增題目</button>
   </div>
 </div>
 
-<!-- MODAL：教材命名 -->
+<!-- MODAL 教材命名 -->
 <div class="modal-bg" id="modal-mat" onclick="closeModal('modal-mat')">
   <div class="modal" onclick="event.stopPropagation()">
-    <div class="modal-handle"></div>
-    <div class="modal-title">儲存教材</div>
-    <div class="form-group">
-      <label class="form-lbl">教材名稱 *</label>
-      <input class="form-input" id="mat-title-input" placeholder="如：引擎查修實務 第一期">
-    </div>
+    <div class="modal-handle"></div><div class="modal-title">儲存教材</div>
+    <div class="form-group"><label class="form-lbl">教材名稱 *</label><input class="form-input" id="mat-title-input" placeholder="如：引擎查修實務 第一期"></div>
     <button class="btn btn-primary" onclick="confirmSaveMat()">確認儲存</button>
   </div>
 </div>
 
-<!-- MODAL：學員個人圖表 -->
+<!-- MODAL 學員圖表 -->
 <div class="modal-bg" id="modal-chart" onclick="closeModal('modal-chart')">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-handle"></div>
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
       <div style="width:40px;height:40px;border-radius:50%;background:var(--blue-lt);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:var(--blue)" id="chart-name-avatar">—</div>
-      <div>
-        <div style="font-size:18px;font-weight:900;" id="chart-name">—</div>
-        <div style="font-size:12px;color:var(--text3);" id="chart-site">—</div>
-      </div>
+      <div><div style="font-size:18px;font-weight:900;" id="chart-name">—</div><div style="font-size:12px;color:var(--text3);" id="chart-site">—</div></div>
     </div>
-
-    <!-- 4格統計 -->
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:16px;">
-      <div style="background:var(--blue-lt);border-radius:10px;padding:10px 6px;text-align:center;">
-        <div style="font-size:18px;font-weight:900;color:var(--blue)" id="chart-avg">—</div>
-        <div style="font-size:9px;color:var(--text3);font-weight:700;">平均分</div>
-      </div>
-      <div style="background:var(--green-lt);border-radius:10px;padding:10px 6px;text-align:center;">
-        <div style="font-size:18px;font-weight:900;color:var(--green)" id="chart-best">—</div>
-        <div style="font-size:9px;color:var(--text3);font-weight:700;">最高分</div>
-      </div>
-      <div style="background:var(--red-lt);border-radius:10px;padding:10px 6px;text-align:center;">
-        <div style="font-size:18px;font-weight:900;color:var(--red)" id="chart-worst">—</div>
-        <div style="font-size:9px;color:var(--text3);font-weight:700;">最低分</div>
-      </div>
-      <div style="background:var(--amber-lt);border-radius:10px;padding:10px 6px;text-align:center;">
-        <div style="font-size:18px;font-weight:900;color:var(--amber)" id="chart-pass">—</div>
-        <div style="font-size:9px;color:var(--text3);font-weight:700;">及格率</div>
-      </div>
+      <div style="background:var(--blue-lt);border-radius:10px;padding:10px 6px;text-align:center;"><div style="font-size:18px;font-weight:900;color:var(--blue)" id="chart-avg">—</div><div style="font-size:9px;color:var(--text3);font-weight:700;">平均分</div></div>
+      <div style="background:var(--green-lt);border-radius:10px;padding:10px 6px;text-align:center;"><div style="font-size:18px;font-weight:900;color:var(--green)" id="chart-best">—</div><div style="font-size:9px;color:var(--text3);font-weight:700;">最高分</div></div>
+      <div style="background:var(--red-lt);border-radius:10px;padding:10px 6px;text-align:center;"><div style="font-size:18px;font-weight:900;color:var(--red)" id="chart-worst">—</div><div style="font-size:9px;color:var(--text3);font-weight:700;">最低分</div></div>
+      <div style="background:var(--amber-lt);border-radius:10px;padding:10px 6px;text-align:center;"><div style="font-size:18px;font-weight:900;color:var(--amber)" id="chart-pass">—</div><div style="font-size:9px;color:var(--text3);font-weight:700;">及格率</div></div>
     </div>
-
-    <!-- 折線圖 -->
-    <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px;">📈 歷次成績趨勢（最近8次）</div>
+    <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px;">📈 歷次成績趨勢</div>
     <div style="background:var(--bg);border-radius:10px;padding:10px;margin-bottom:14px;" id="chart-svg"></div>
-
-    <!-- 最近答題明細 -->
     <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px;">📋 最近答題明細</div>
     <div id="chart-detail"></div>
-
     <div style="height:14px;"></div>
     <button class="btn btn-ghost" onclick="closeModal('modal-chart')">關閉</button>
   </div>
 </div>
 
-<!-- MODAL：選擇圖片來源 -->
+<!-- MODAL 圖片來源 -->
 <div class="modal-bg" id="modal-photo-src" onclick="closeModal('modal-photo-src')">
   <div class="modal" onclick="event.stopPropagation()" style="padding-bottom:calc(16px + var(--safe-bot))">
-    <div class="modal-handle"></div>
-    <div class="modal-title">新增圖片</div>
+    <div class="modal-handle"></div><div class="modal-title">新增圖片</div>
     <div style="display:flex;flex-direction:column;gap:10px;">
-      <button class="btn btn-primary" onclick="pickCamera()" style="font-size:16px;padding:16px;">
-        📷 拍照
-      </button>
-      <button class="btn btn-ghost" onclick="pickAlbum()" style="font-size:16px;padding:16px;">
-        🖼️ 從相簿選圖
-      </button>
+      <button class="btn btn-primary" onclick="pickCamera()" style="font-size:16px;padding:16px;">📷 拍照</button>
+      <button class="btn btn-ghost" onclick="pickAlbum()" style="font-size:16px;padding:16px;">🖼️ 從相簿選圖</button>
     </div>
   </div>
 </div>
 
-<!-- MODAL：圖片預覽 -->
+<!-- MODAL 圖片預覽 -->
 <div class="modal-bg" id="modal-preview" onclick="closeModal('modal-preview')">
   <div class="modal" onclick="event.stopPropagation()">
-    <div class="modal-handle"></div>
-    <input type="hidden" id="preview-slot-idx" value="0">
+    <div class="modal-handle"></div><input type="hidden" id="preview-slot-idx" value="0">
     <img id="preview-img" src="" style="width:100%;border-radius:12px;margin-bottom:14px;object-fit:contain;max-height:60vh;">
-    <div style="display:flex;gap:10px;">
-      <button class="btn btn-ghost" onclick="closeModal('modal-preview')" style="flex:1">關閉</button>
-      <button class="btn" style="flex:1;background:var(--red-lt);color:var(--red);font-weight:700;" onclick="deletePreviewPhoto()">🗑 刪除</button>
-    </div>
+    <div style="display:flex;gap:10px;"><button class="btn btn-ghost" onclick="closeModal('modal-preview')" style="flex:1">關閉</button><button class="btn" style="flex:1;background:var(--red-lt);color:var(--red);font-weight:700;" onclick="deletePreviewPhoto()">🗑 刪除</button></div>
   </div>
 </div>
 
-<!-- MODAL：AI生成中 -->
+<!-- MODAL AI生成 -->
 <div class="modal-bg" id="modal-ai">
   <div class="modal" style="text-align:center;padding:40px 20px;">
     <div style="font-size:48px;margin-bottom:16px;">🤖</div>
@@ -565,797 +380,342 @@ textarea.form-input{min-height:80px;resize:vertical;}
 </div>
 
 <script>
-// ══ Firebase 初始化 ══
-const firebaseConfig = {
-  apiKey: "AIzaSyCj2IUVHkw0pSEPD5Bls8OpSxw4ce0efEY",
-  authDomain: "body-shop-app-1875f.firebaseapp.com",
-  projectId: "body-shop-app-1875f",
-  storageBucket: "body-shop-app-1875f.firebasestorage.app",
-  messagingSenderId: "27363412403",
-  appId: "1:27363412403:web:ad96bfe23b21bfa2eda3c6"
-};
+const firebaseConfig={apiKey:"AIzaSyCj2IUVHkw0pSEPD5Bls8OpSxw4ce0efEY",authDomain:"body-shop-app-1875f.firebaseapp.com",projectId:"body-shop-app-1875f",storageBucket:"body-shop-app-1875f.firebasestorage.app",messagingSenderId:"27363412403",appId:"1:27363412403:web:ad96bfe23b21bfa2eda3c6"};
 firebase.initializeApp(firebaseConfig);
-const fdb = firebase.firestore();
-const SBR_DOC = fdb.collection('sbr').doc('main');
+const fdb=firebase.firestore();
+const SBR_DOC=fdb.collection('sbr').doc('main');
 
-// 雲端讀取
 async function loadFromCloud(){
   try{
     showSyncStatus('☁️ 連線中...');
-    const doc = await SBR_DOC.get();
-    if(doc.exists){
-      db = { ...initDB(), ...doc.data() };
-      // Firestore Timestamp 轉回普通物件
-      if(!db.signs) db.signs = {};
-      if(!db.scores) db.scores = [];
-      if(!db.materials) db.materials = [];
-      if(!db.questions) db.questions = [];
-    }
-    showSyncStatus('✅ 已同步', 2000);
-  } catch(e){
-    console.warn('Firebase 讀取失敗，使用本地資料:', e);
-    showSyncStatus('📱 離線模式', 2000);
-  }
+    const doc=await SBR_DOC.get();
+    if(doc.exists){db={...initDB(),...doc.data()};fixDB();}
+    showSyncStatus('✅ 已同步',2000);
+  }catch(e){showSyncStatus('📱 離線模式',2000);}
   renderAll();
 }
+function fixDB(){if(!db.signs)db.signs={};if(!db.scores)db.scores=[];if(!db.materials)db.materials=[];if(!db.questions)db.questions=[];if(db.examOpen===undefined)db.examOpen=false;}
 
-// 雲端寫入
-let saveTimer = null;
+let saveTimer=null;
 async function saveDB(){
-  // 先存本地
-  localStorage.setItem(KEY, JSON.stringify(db));
-  // 防抖：1.5秒後再存雲端
+  localStorage.setItem(KEY,JSON.stringify(db));
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(async ()=>{
-    try{
-      showSyncStatus('💾 儲存中...');
-      await SBR_DOC.set(db);
-      showSyncStatus('✅ 已儲存', 1500);
-    } catch(e){
-      console.warn('Firebase 儲存失敗:', e);
-      showSyncStatus('⚠️ 離線儲存', 2000);
-    }
-  }, 1500);
+  saveTimer=setTimeout(async()=>{
+    try{showSyncStatus('💾 儲存中...');await SBR_DOC.set(db);showSyncStatus('✅ 已儲存',1500);}
+    catch(e){showSyncStatus('⚠️ 離線儲存',2000);}
+  },1500);
 }
 
-// 即時監聽（多人同步）
 function startRealtimeSync(){
   SBR_DOC.onSnapshot(doc=>{
-    if(doc.exists && !doc.metadata.hasPendingWrites){
-      const remote = doc.data();
-      if(!remote) return;
-      db = { ...initDB(), ...remote };
-      if(!db.signs) db.signs = {};
-      if(!db.scores) db.scores = [];
-      if(!db.materials) db.materials = [];
-      if(!db.questions) db.questions = [];
+    if(doc.exists&&!doc.metadata.hasPendingWrites){
+      const r=doc.data();if(!r)return;
+      db={...initDB(),...r};fixDB();
       renderAll();
-      if(isTeacher){ renderQuizEditor(); renderTeacherSigns(); renderTeacherScores(); }
+      if(isTeacher){renderQuizEditor();renderTeacherSigns();renderTeacherScores();renderExamOpenBadge();}
     }
-  }, err=>console.warn('即時同步錯誤:', err));
+  },err=>console.warn(err));
 }
 
-// 同步狀態提示
 let syncTimer;
-function showSyncStatus(msg, hideAfter=0){
-  const el = document.getElementById('sync-status');
-  if(!el) return;
-  el.textContent = msg;
-  el.style.opacity = '1';
-  clearTimeout(syncTimer);
-  if(hideAfter) syncTimer = setTimeout(()=>el.style.opacity='0', hideAfter);
+function showSyncStatus(msg,hideAfter=0){
+  const el=document.getElementById('sync-status');if(!el)return;
+  el.textContent=msg;el.style.opacity='1';clearTimeout(syncTimer);
+  if(hideAfter)syncTimer=setTimeout(()=>el.style.opacity='0',hideAfter);
 }
 
-// ══ 人員名單 ══
-const MEMBERS = {
-  '永康': ['楊家豪','葉昶廷','邱中韋','蔡松益','王耀彬','謝福志','陳重佑','陳昱傑','許韶剛','邱柏誠','林建男','楊晉嘉','林智瑋','梁仲旻','黃昱愷','黃國偉','吳聘訪','穆冠忡','李慶珍','宋偉祥','蘇晋賢','李右淋','孫志文','鄭龍祥','林佳楓','蘇紹惟','蔡明籠','周明勳','孫煜展','李俊輝','黃詩詠','張家銓','宋秉霖','蘇柏豪','劉倍源'],
-  '歸仁': ['黃冠榮','蔡裕全','吳晏丞','莊祁穎','鄭佳勝','張翔政','李章愷','林功源','楊昶智','黃武正','黃登龍','吳典松','薛承恩','林士勛']
-};
-const TEACHER_PW = '1234';
-const KEY = 'sbr_v3';
+const MEMBERS={'永康':['楊家豪','葉昶廷','邱中韋','蔡松益','王耀彬','謝福志','陳重佑','陳昱傑','許韶剛','邱柏誠','林建男','楊晉嘉','林智瑋','梁仲旻','黃昱愷','黃國偉','吳聘訪','穆冠忡','李慶珍','宋偉祥','蘇晋賢','李右淋','孫志文','鄭龍祥','林佳楓','蘇紹惟','蔡明籠','周明勳','孫煜展','李俊輝','黃詩詠','張家銓','宋秉霖','蘇柏豪','劉倍源'],'歸仁':['黃冠榮','蔡裕全','吳晏丞','莊祁穎','鄭佳勝','張翔政','李章愷','林功源','楊昶智','黃武正','黃登龍','吳典松','薛承恩','林士勛']};
+const TEACHER_PW='1234';
+const KEY='sbr_v3';
 
-// ══ STATE ══
-let db = loadDB();
-let currentUser = null;
-let currentSite = null;
-let isTeacher = false;
-let examQ = [];
-let examIdx = 0;
-let examAns = [];
-let mediaRec = null;
-let isRecording = false;
+let db=loadDB(),currentUser=null,currentSite=null,isTeacher=false;
+let examQ=[],examIdx=0,examAns=[],mediaRec=null,isRecording=false,qrInstance=null;
 
-function loadDB(){
-  try{ return JSON.parse(localStorage.getItem(KEY)) || initDB(); }
-  catch(e){ return initDB(); }
-}
-function initDB(){
-  return { signs:{}, scores:[], materials:[], questions:[] };
-}
+function loadDB(){try{return JSON.parse(localStorage.getItem(KEY))||initDB();}catch(e){return initDB();}}
+function initDB(){return{signs:{},scores:[],materials:[],questions:[],examOpen:false};}
 
-// ══ INIT ══
-window.addEventListener('load', async ()=>{
+window.addEventListener('load',async()=>{
   initCanvas();
-  renderAll(); // 先用本地資料渲染
-  setTimeout(()=>document.getElementById('splash').classList.add('out'), 1200);
-  await loadFromCloud(); // 再從雲端更新
-  startRealtimeSync();   // 開始即時監聽
+  const params=new URLSearchParams(window.location.search);
+  if(params.get('exam')==='1')setTimeout(()=>goPage('exam'),1400);
+  renderAll();
+  setTimeout(()=>document.getElementById('splash').classList.add('out'),1200);
+  await loadFromCloud();
+  startRealtimeSync();
 });
 
-// ══ SITE / NAME SELECT ══
 function onSiteChange(){
-  const site = document.getElementById('site-sel').value;
-  const nameSel = document.getElementById('name-sel');
-  nameSel.innerHTML = '<option value="">── 選擇姓名 ──</option>';
-  if(site && MEMBERS[site]){
-    MEMBERS[site].forEach(n=>{
-      const o = document.createElement('option');
-      o.value = n; o.textContent = n;
-      nameSel.appendChild(o);
-    });
-  }
-  currentUser = null; currentSite = site;
-  updateHdr();
+  const site=document.getElementById('site-sel').value;
+  const ns=document.getElementById('name-sel');
+  ns.innerHTML='<option value="">── 選擇姓名 ──</option>';
+  if(site&&MEMBERS[site])MEMBERS[site].forEach(n=>{const o=document.createElement('option');o.value=n;o.textContent=n;ns.appendChild(o);});
+  currentUser=null;currentSite=site;updateHdr();
 }
-function onNameChange(){
-  const name = document.getElementById('name-sel').value;
-  currentUser = name || null;
-  currentSite = document.getElementById('site-sel').value || null;
-  updateHdr();
-  renderHome();
-}
-function updateHdr(){
-  const sub = document.getElementById('hdr-sub');
-  sub.textContent = currentUser ? `${currentSite}廠 · ${currentUser}` : '請先選擇姓名';
-  document.getElementById('sign-name-display').textContent = currentUser || '—';
-}
+function onNameChange(){currentUser=document.getElementById('name-sel').value||null;currentSite=document.getElementById('site-sel').value||null;updateHdr();renderHome();}
+function updateHdr(){document.getElementById('hdr-sub').textContent=currentUser?`${currentSite}廠 · ${currentUser}`:'請先選擇姓名';document.getElementById('sign-name-display').textContent=currentUser||'—';}
 
-// ══ NAVIGATION ══
-const PAGES = ['home','sign','material','exam','score','teacher'];
+const PAGES=['home','sign','material','exam','score','teacher'];
 function goPage(id){
-  if(!['home','teacher'].includes(id) && !currentUser && id !== 'material'){
-    toast('⚠️ 請先選擇您的姓名'); goPage('home'); return;
-  }
-  PAGES.forEach(p=>{
-    document.getElementById('page-'+p).classList.toggle('act', p===id);
-    const nav = document.getElementById('nav-'+p);
-    if(nav) nav.classList.toggle('act', p===id);
-  });
-  if(id==='sign') renderSignList();
-  if(id==='score') renderScoreList();
-  if(id==='material') renderMaterials();
-  if(id==='exam') renderExamReady();
-  if(id==='teacher') renderTeacher();
+  if(!['home','teacher'].includes(id)&&!currentUser&&id!=='material'){toast('⚠️ 請先選擇您的姓名');goPage('home');return;}
+  PAGES.forEach(p=>{document.getElementById('page-'+p).classList.toggle('act',p===id);const n=document.getElementById('nav-'+p);if(n)n.classList.toggle('act',p===id);});
+  if(id==='sign')renderSignList();if(id==='score')renderScoreList();if(id==='material')renderMaterials();
+  if(id==='exam')renderExamReady();if(id==='teacher')renderTeacher();
 }
 
-// ══ SIGN ══
-let signCtx, signing=false;
+let signCtx,signing=false;
 function initCanvas(){
-  const canvas = document.getElementById('signCanvas');
-  const ratio = window.devicePixelRatio || 1;
-  canvas.width = canvas.offsetWidth * ratio;
-  canvas.height = 160 * ratio;
-  signCtx = canvas.getContext('2d');
-  signCtx.scale(ratio, ratio);
-  signCtx.strokeStyle = '#1C1C1E';
-  signCtx.lineWidth = 2.5;
-  signCtx.lineCap = 'round';
-  signCtx.lineJoin = 'round';
-
-  const getPos = e => {
-    const r = canvas.getBoundingClientRect();
-    const t = e.touches ? e.touches[0] : e;
-    return { x:(t.clientX-r.left)*(canvas.width/r.width/( window.devicePixelRatio||1)), y:(t.clientY-r.top)*(canvas.height/r.height/(window.devicePixelRatio||1)) };
-  };
-  canvas.addEventListener('mousedown', e=>{ signing=true; signCtx.beginPath(); const p=getPos(e); signCtx.moveTo(p.x,p.y); });
-  canvas.addEventListener('mousemove', e=>{ if(!signing) return; const p=getPos(e); signCtx.lineTo(p.x,p.y); signCtx.stroke(); });
-  canvas.addEventListener('mouseup', ()=>signing=false);
-  canvas.addEventListener('touchstart', e=>{ e.preventDefault(); signing=true; signCtx.beginPath(); const p=getPos(e); signCtx.moveTo(p.x,p.y); }, {passive:false});
-  canvas.addEventListener('touchmove', e=>{ e.preventDefault(); if(!signing) return; const p=getPos(e); signCtx.lineTo(p.x,p.y); signCtx.stroke(); }, {passive:false});
-  canvas.addEventListener('touchend', ()=>signing=false);
+  const c=document.getElementById('signCanvas');const ratio=window.devicePixelRatio||1;
+  c.width=c.offsetWidth*ratio;c.height=160*ratio;signCtx=c.getContext('2d');signCtx.scale(ratio,ratio);
+  signCtx.strokeStyle='#1C1C1E';signCtx.lineWidth=2.5;signCtx.lineCap='round';signCtx.lineJoin='round';
+  const gp=e=>{const r=c.getBoundingClientRect(),t=e.touches?e.touches[0]:e;return{x:(t.clientX-r.left)*(c.width/r.width/(window.devicePixelRatio||1)),y:(t.clientY-r.top)*(c.height/r.height/(window.devicePixelRatio||1))};};
+  c.addEventListener('mousedown',e=>{signing=true;signCtx.beginPath();const p=gp(e);signCtx.moveTo(p.x,p.y);});
+  c.addEventListener('mousemove',e=>{if(!signing)return;const p=gp(e);signCtx.lineTo(p.x,p.y);signCtx.stroke();});
+  c.addEventListener('mouseup',()=>signing=false);
+  c.addEventListener('touchstart',e=>{e.preventDefault();signing=true;signCtx.beginPath();const p=gp(e);signCtx.moveTo(p.x,p.y);},{passive:false});
+  c.addEventListener('touchmove',e=>{e.preventDefault();if(!signing)return;const p=gp(e);signCtx.lineTo(p.x,p.y);signCtx.stroke();},{passive:false});
+  c.addEventListener('touchend',()=>signing=false);
 }
-function clearSign(){ signCtx.clearRect(0,0,9999,9999); }
+function clearSign(){signCtx.clearRect(0,0,9999,9999);}
 function saveSign(){
-  if(!currentUser){ toast('⚠️ 請先選擇姓名'); return; }
-  const canvas = document.getElementById('signCanvas');
-  const blank = !signCtx.getImageData(0,0,canvas.width,canvas.height).data.some(v=>v!==0);
-  if(blank){ toast('⚠️ 請先簽名'); return; }
-  const today = new Date().toLocaleDateString('zh-TW');
-  if(!db.signs[today]) db.signs[today] = {};
-  db.signs[today][currentUser] = { site:currentSite, time:new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'}) };
-  saveDB(); clearSign();
-  toast('✅ 簽到成功！');
-  renderSignList(); renderHome();
+  if(!currentUser){toast('⚠️ 請先選擇姓名');return;}
+  const c=document.getElementById('signCanvas');
+  if(!signCtx.getImageData(0,0,c.width,c.height).data.some(v=>v!==0)){toast('⚠️ 請先簽名');return;}
+  const today=new Date().toLocaleDateString('zh-TW');
+  if(!db.signs[today])db.signs[today]={};
+  db.signs[today][currentUser]={site:currentSite,time:new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'})};
+  saveDB();clearSign();toast('✅ 簽到成功！');renderSignList();renderHome();
 }
 function renderSignList(){
-  const today = new Date().toLocaleDateString('zh-TW');
-  const rec = db.signs[today] || {};
-  const list = Object.entries(rec);
-  const el = document.getElementById('sign-list');
-  el.innerHTML = list.length ? list.map(([name,info])=>`
-    <div style="display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid var(--border)">
-      <div style="width:34px;height:34px;border-radius:50%;background:var(--blue-lt);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:var(--blue)">${name[0]}</div>
-      <div style="flex:1"><div style="font-size:14px;font-weight:600">${name}</div><div style="font-size:11px;color:var(--text3)">${info.site}廠</div></div>
-      <div style="font-size:12px;color:var(--text2)">${info.time}</div>
-    </div>`).join('')
-  : '<div class="empty"><div class="empty-icon">📋</div><p>今日尚無簽到</p></div>';
+  const today=new Date().toLocaleDateString('zh-TW'),rec=db.signs[today]||{},list=Object.entries(rec);
+  document.getElementById('sign-list').innerHTML=list.length?list.map(([n,i])=>`<div style="display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid var(--border)"><div style="width:34px;height:34px;border-radius:50%;background:var(--blue-lt);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:var(--blue)">${n[0]}</div><div style="flex:1"><div style="font-size:14px;font-weight:600">${n}</div><div style="font-size:11px;color:var(--text3)">${i.site}廠</div></div><div style="font-size:12px;color:var(--text2)">${i.time}</div></div>`).join(''):'<div class="empty"><div class="empty-icon">📋</div><p>今日尚無簽到</p></div>';
 }
 
-// ══ MATERIALS ══
-function saveAsMaterial(){
-  const text = document.getElementById('rec-text').value.trim();
-  if(!text){ toast('⚠️ 請先輸入教材內容'); return; }
-  document.getElementById('mat-title-input').value = '';
-  document.getElementById('modal-mat').classList.add('open');
-}
+function saveAsMaterial(){if(!document.getElementById('rec-text').value.trim()){toast('⚠️ 請先輸入教材內容');return;}document.getElementById('mat-title-input').value='';document.getElementById('modal-mat').classList.add('open');}
 function confirmSaveMat(){
-  const title = document.getElementById('mat-title-input').value.trim();
-  const content = document.getElementById('rec-text').value.trim();
-  if(!title){ toast('⚠️ 請輸入教材名稱'); return; }
-  db.materials.push({ id:Date.now(), title, content, photos:[...photos], date:new Date().toLocaleDateString('zh-TW') });
-  photos=['','','','','',''];
-  renderPhotoGrid();
-  saveDB(); closeModal('modal-mat');
-  document.getElementById('rec-text').value = '';
-  toast('✅ 教材已儲存');
-  renderMaterials(); renderQuizEditor();
+  const title=document.getElementById('mat-title-input').value.trim(),content=document.getElementById('rec-text').value.trim();
+  if(!title){toast('⚠️ 請輸入教材名稱');return;}
+  db.materials.push({id:Date.now(),title,content,photos:[...photos],date:new Date().toLocaleDateString('zh-TW')});
+  photos=['','','','','',''];renderPhotoGrid();saveDB();closeModal('modal-mat');document.getElementById('rec-text').value='';toast('✅ 教材已儲存');renderMaterials();
 }
 function renderMaterials(){
-  const list = document.getElementById('mat-list');
-  if(!db.materials.length){
-    list.innerHTML = '<div class="empty"><div class="empty-icon">📭</div><p>尚無教材，請等技術長上傳</p></div>';
-    return;
-  }
-  list.innerHTML = db.materials.map(m=>`
-    <div class="mat-item" onclick="openMat(${m.id})">
-      <div class="mat-icon">📄</div>
-      <div class="mat-info"><div class="mat-title">${m.title}</div><div class="mat-meta">${m.date}</div></div>
-      <span style="color:var(--text3)">›</span>
-    </div>`).join('');
+  const l=document.getElementById('mat-list');
+  l.innerHTML=db.materials.length?db.materials.map(m=>`<div class="mat-item" onclick="openMat(${m.id})"><div class="mat-icon">📄</div><div class="mat-info"><div class="mat-title">${m.title}</div><div class="mat-meta">${m.date}</div></div><span style="color:var(--text3)">›</span></div>`).join(''):'<div class="empty"><div class="empty-icon">📭</div><p>尚無教材，請等技術長上傳</p></div>';
 }
 function openMat(id){
-  const m = db.materials.find(x=>x.id===id);
-  if(!m) return;
-  document.getElementById('mat-list').style.display='none';
-  document.getElementById('mat-detail').style.display='block';
-  document.getElementById('mat-detail-title').textContent = m.title;
-  document.getElementById('mat-detail-body').textContent = m.content;
-  // 顯示圖片
-  const imgs = (m.photos||[]).filter(Boolean);
-  if(imgs.length){
-    const imgWrap = document.createElement('div');
-    imgWrap.style.cssText='display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px;';
-    imgWrap.innerHTML = imgs.map(p=>`<div style="aspect-ratio:1;border-radius:8px;overflow:hidden"><img src="${p}" style="width:100%;height:100%;object-fit:cover"></div>`).join('');
-    document.getElementById('mat-detail-body').appendChild(imgWrap);
-  }
+  const m=db.materials.find(x=>x.id===id);if(!m)return;
+  document.getElementById('mat-list').style.display='none';document.getElementById('mat-detail').style.display='block';
+  document.getElementById('mat-detail-title').textContent=m.title;document.getElementById('mat-detail-body').textContent=m.content;
+  const imgs=(m.photos||[]).filter(Boolean);
+  if(imgs.length){const w=document.createElement('div');w.style.cssText='display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px;';w.innerHTML=imgs.map(p=>`<div style="aspect-ratio:1;border-radius:8px;overflow:hidden"><img src="${p}" style="width:100%;height:100%;object-fit:cover"></div>`).join('');document.getElementById('mat-detail-body').appendChild(w);}
 }
-function closeMat(){
-  document.getElementById('mat-list').style.display='block';
-  document.getElementById('mat-detail').style.display='none';
-}
+function closeMat(){document.getElementById('mat-list').style.display='block';document.getElementById('mat-detail').style.display='none';}
 
-// ══ QUIZ ══
 function renderExamReady(){
-  const qs = db.questions;
-  const t = document.getElementById('exam-info-title');
-  const s = document.getElementById('exam-info-sub');
-  const btn = document.getElementById('begin-btn');
-  if(qs.length){
-    t.textContent = `共 ${qs.length} 題`;
-    s.textContent = '完成後立即顯示成績與解析';
-    btn.style.display='block';
-  } else {
-    t.textContent = '尚無題目';
-    s.textContent = '請等技術長建立測驗';
-    btn.style.display='none';
-  }
+  const qs=db.questions,t=document.getElementById('exam-info-title'),s=document.getElementById('exam-info-sub'),btn=document.getElementById('begin-btn'),sd=document.getElementById('exam-status-display');
+  if(qs.length){t.textContent=`共 ${qs.length} 題`;s.textContent='完成後立即顯示成績與解析';}
+  else{t.textContent='尚無題目';s.textContent='請等技術長建立測驗';}
+  if(db.examOpen&&qs.length){sd.innerHTML='<span class="exam-mode-badge exam-mode-open">✅ 考試已開放</span>';btn.style.display='block';}
+  else if(!db.examOpen&&qs.length){sd.innerHTML='<span class="exam-mode-badge exam-mode-closed">🔒 考試尚未開放</span>';btn.style.display='none';}
+  else{sd.innerHTML='';btn.style.display='none';}
+  const hs=document.getElementById('home-exam-status');if(hs)hs.textContent=db.examOpen&&qs.length?'✅ 考試開放中，點此作答':'測驗本期課程內容';
 }
 function startExam(){
-  if(!currentUser){ toast('⚠️ 請先選擇姓名'); return; }
-  if(!db.questions.length){ toast('⚠️ 尚無測驗題目'); return; }
+  if(!currentUser){toast('⚠️ 請先選擇您的姓名');return;}
+  if(!db.questions.length){toast('⚠️ 尚無測驗題目');return;}
+  if(!db.examOpen){toast('⚠️ 考試尚未開放，請等待技術長開放');return;}
   goPage('exam');
 }
 function beginExam(){
-  examQ = [...db.questions].sort(()=>Math.random()-.5);
-  examIdx = 0; examAns = [];
-  document.getElementById('exam-ready').style.display='none';
-  document.getElementById('exam-doing').style.display='block';
-  document.getElementById('exam-result').style.display='none';
+  if(!currentUser){toast('⚠️ 請先選擇您的姓名');goPage('home');return;}
+  if(!db.examOpen){toast('⚠️ 考試尚未開放');return;}
+  examQ=[...db.questions].sort(()=>Math.random()-.5);examIdx=0;examAns=[];
+  document.getElementById('exam-ready').style.display='none';document.getElementById('exam-doing').style.display='block';document.getElementById('exam-result').style.display='none';
   showQ();
 }
 function showQ(){
-  const q = examQ[examIdx];
-  document.getElementById('q-progress').textContent = `第 ${examIdx+1} / ${examQ.length} 題`;
-  document.getElementById('q-text').textContent = q.q;
-  const opts = [q.a, q.b, q.c, q.d].filter(Boolean);
-  const labels = ['A','B','C','D'];
-  document.getElementById('q-opts').innerHTML = opts.map((o,i)=>`
-    <div class="quiz-opt" onclick="selectOpt(this,'${labels[i]}')">${labels[i]}. ${o}</div>`).join('');
+  const q=examQ[examIdx];document.getElementById('q-progress').textContent=`第 ${examIdx+1} / ${examQ.length} 題`;document.getElementById('q-text').textContent=q.q;
+  const opts=[q.a,q.b,q.c,q.d].filter(Boolean),labels=['A','B','C','D'];
+  document.getElementById('q-opts').innerHTML=opts.map((o,i)=>`<div class="quiz-opt" onclick="selectOpt(this,'${labels[i]}')">${labels[i]}. ${o}</div>`).join('');
   document.getElementById('next-btn').style.display='none';
 }
-function selectOpt(el, label){
-  if(el.classList.contains('selected')||el.classList.contains('correct')||el.classList.contains('wrong')) return;
-  const q = examQ[examIdx];
-  document.querySelectorAll('.quiz-opt').forEach(o=>o.style.pointerEvents='none');
-  if(label===q.ans){
-    el.classList.add('correct');
-  } else {
-    el.classList.add('wrong');
-    document.querySelectorAll('.quiz-opt').forEach((o,i)=>{
-      if(['A','B','C','D'][i]===q.ans) o.classList.add('correct');
-    });
-  }
-  examAns.push(label);
-  document.getElementById('next-btn').style.display='block';
-  document.getElementById('next-btn').textContent = examIdx<examQ.length-1 ? '下一題' : '查看成績';
+function selectOpt(el,label){
+  if(el.classList.contains('correct')||el.classList.contains('wrong'))return;
+  const q=examQ[examIdx];document.querySelectorAll('.quiz-opt').forEach(o=>o.style.pointerEvents='none');
+  if(label===q.ans)el.classList.add('correct');
+  else{el.classList.add('wrong');document.querySelectorAll('.quiz-opt').forEach((o,i)=>{if(['A','B','C','D'][i]===q.ans)o.classList.add('correct');});}
+  examAns.push(label);document.getElementById('next-btn').style.display='block';document.getElementById('next-btn').textContent=examIdx<examQ.length-1?'下一題':'查看成績';
 }
-function nextQ(){
-  examIdx++;
-  if(examIdx < examQ.length){
-    showQ();
-  } else {
-    showResult();
-  }
-}
+function nextQ(){examIdx++;if(examIdx<examQ.length)showQ();else showResult();}
 function showResult(){
-  const correct = examAns.filter((a,i)=>a===examQ[i].ans).length;
-  const score = Math.round(correct/examQ.length*100);
-  document.getElementById('exam-doing').style.display='none';
-  document.getElementById('exam-result').style.display='block';
-  const el = document.getElementById('result-score');
-  el.textContent = score+'分';
-  el.className = 'quiz-score '+(score>=60?'pass':'fail');
-  document.getElementById('result-detail').textContent = `答對 ${correct} / ${examQ.length} 題`;
-  document.getElementById('review-list').style.display='none';
-  // 存成績
-  if(currentUser){
-    db.scores.push({ name:currentUser, site:currentSite, score, correct, total:examQ.length, date:new Date().toLocaleDateString('zh-TW'), time:new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'}) });
-    saveDB(); renderHome();
-  }
+  const correct=examAns.filter((a,i)=>a===examQ[i].ans).length,score=Math.round(correct/examQ.length*100);
+  document.getElementById('exam-doing').style.display='none';document.getElementById('exam-result').style.display='block';
+  const el=document.getElementById('result-score');el.textContent=score+'分';el.className='quiz-score '+(score>=60?'pass':'fail');
+  document.getElementById('result-detail').textContent=`答對 ${correct} / ${examQ.length} 題`;document.getElementById('review-list').style.display='none';
+  if(currentUser){db.scores.push({name:currentUser,site:currentSite,score,correct,total:examQ.length,date:new Date().toLocaleDateString('zh-TW'),time:new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'})});saveDB();renderHome();}
 }
 function reviewAnswers(){
-  const rev = document.getElementById('review-list');
-  rev.style.display='block';
-  rev.innerHTML = examQ.map((q,i)=>{
-    const ua = examAns[i]; const ok = ua===q.ans;
-    const opts = [q.a,q.b,q.c,q.d].filter(Boolean);
-    const labels=['A','B','C','D'];
-    return `<div class="card" style="margin-bottom:10px;">
-      <div class="card-body">
-        <div style="display:flex;justify-content:space-between;margin-bottom:8px">
-          <span style="font-size:12px;font-weight:700;color:var(--text3)">第 ${i+1} 題</span>
-          <span class="tag ${ok?'tag-green':'tag-red'}">${ok?'✅ 正確':'❌ 錯誤'}</span>
-        </div>
-        <div style="font-size:14px;font-weight:700;margin-bottom:8px">${q.q}</div>
-        ${opts.map((o,j)=>`<div style="font-size:13px;padding:4px 0;color:${labels[j]===q.ans?'var(--green)':labels[j]===ua&&!ok?'var(--red)':'var(--text2)'}">${labels[j]}. ${o}</div>`).join('')}
-        ${q.exp?`<div style="margin-top:8px;padding:8px;background:var(--blue-lt);border-radius:8px;font-size:12px;color:var(--blue-dk)">💡 ${q.exp}</div>`:''}
-      </div>
-    </div>`;
+  const rev=document.getElementById('review-list');rev.style.display='block';
+  rev.innerHTML=examQ.map((q,i)=>{const ua=examAns[i],ok=ua===q.ans,opts=[q.a,q.b,q.c,q.d].filter(Boolean),labels=['A','B','C','D'];
+    return`<div class="card" style="margin-bottom:10px;"><div class="card-body"><div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="font-size:12px;font-weight:700;color:var(--text3)">第 ${i+1} 題</span><span class="tag ${ok?'tag-green':'tag-red'}">${ok?'✅ 正確':'❌ 錯誤'}</span></div><div style="font-size:14px;font-weight:700;margin-bottom:8px">${q.q}</div>${opts.map((o,j)=>`<div style="font-size:13px;padding:4px 0;color:${labels[j]===q.ans?'var(--green)':labels[j]===ua&&!ok?'var(--red)':'var(--text2)'}">${labels[j]}. ${o}</div>`).join('')}${q.exp?`<div style="margin-top:8px;padding:8px;background:var(--blue-lt);border-radius:8px;font-size:12px;color:var(--blue-dk)">💡 ${q.exp}</div>`:''}</div></div>`;
   }).join('');
 }
-function resetExam(){
-  document.getElementById('exam-ready').style.display='block';
-  document.getElementById('exam-doing').style.display='none';
-  document.getElementById('exam-result').style.display='none';
-  document.getElementById('review-list').style.display='none';
+function resetExam(){document.getElementById('exam-ready').style.display='block';document.getElementById('exam-doing').style.display='none';document.getElementById('exam-result').style.display='none';document.getElementById('review-list').style.display='none';renderExamReady();}
+
+function renderScoreList(){
+  const el=document.getElementById('score-list');
+  const scores=currentUser?db.scores.filter(s=>s.name===currentUser).slice(-10).reverse():db.scores.slice(-20).reverse();
+  if(!scores.length){el.innerHTML='<div class="empty"><div class="empty-icon">🏆</div><p>尚無成績記錄</p></div>';return;}
+  const rc=['#FFD700','#C0C0C0','#CD7F32'];
+  el.innerHTML=scores.map((s,i)=>`<div class="score-item"><div class="score-rank" style="background:${i<3?rc[i]:'var(--bg)'};color:${i<3?'#fff':'var(--text3)'}">${i+1}</div><div style="flex:1"><div style="font-size:14px;font-weight:600">${s.name}</div><div style="font-size:11px;color:var(--text3)">${s.site}廠 · ${s.date}</div></div><div style="font-size:16px;font-weight:800;color:${s.score>=80?'var(--green)':s.score>=60?'var(--amber)':'var(--red)'}">${s.score}分</div></div>`).join('');
+}
+
+function renderHome(){
+  const today=new Date().toLocaleDateString('zh-TW'),signed=currentUser&&db.signs[today]&&db.signs[today][currentUser];
+  document.getElementById('my-sign').textContent=signed?'✅ 已簽到':'⬜ 未簽到';
+  const ms=currentUser?db.scores.filter(s=>s.name===currentUser):[];
+  document.getElementById('my-score').textContent=ms.length?ms[ms.length-1].score+'分':'—';
   renderExamReady();
 }
+function renderAll(){renderHome();renderSignList();renderMaterials();renderScoreList();}
 
-// ══ SCORE LIST ══
-function renderScoreList(){
-  const el = document.getElementById('score-list');
-  const scores = currentUser
-    ? db.scores.filter(s=>s.name===currentUser).slice(-10).reverse()
-    : db.scores.slice(-20).reverse();
-  if(!scores.length){ el.innerHTML='<div class="empty"><div class="empty-icon">🏆</div><p>尚無成績記錄</p></div>'; return; }
-  const rankColors = ['#FFD700','#C0C0C0','#CD7F32'];
-  el.innerHTML = scores.map((s,i)=>`
-    <div class="score-item">
-      <div class="score-rank" style="background:${i<3?rankColors[i]:'var(--bg)'};color:${i<3?'#fff':'var(--text3)'}">${i+1}</div>
-      <div style="flex:1">
-        <div class="score-name">${s.name}</div>
-        <div style="font-size:11px;color:var(--text3)">${s.site}廠 · ${s.date}</div>
-      </div>
-      <div class="score-val" style="color:${s.score>=80?'var(--green)':s.score>=60?'var(--amber)':'var(--red)'}">${s.score}分</div>
-    </div>`).join('');
-}
-
-// ══ HOME ══
-function renderHome(){
-  const today = new Date().toLocaleDateString('zh-TW');
-  const signed = currentUser && db.signs[today] && db.signs[today][currentUser];
-  document.getElementById('my-sign').textContent = signed ? '✅ 已簽到' : '⬜ 未簽到';
-  const myScores = currentUser ? db.scores.filter(s=>s.name===currentUser) : [];
-  const last = myScores.length ? myScores[myScores.length-1].score : null;
-  document.getElementById('my-score').textContent = last !== null ? last+'分' : '—';
-}
-function renderAll(){ renderHome(); renderSignList(); renderMaterials(); renderScoreList(); }
-
-// ══ TEACHER ══
 function checkPw(){
-  const pw = document.getElementById('pw-input').value;
-  if(pw === TEACHER_PW){
-    isTeacher = true;
-    document.getElementById('teacher-lock').style.display='none';
-    document.getElementById('teacher-panel').style.display='block';
-    document.getElementById('mode-btn').className='hdr-mode teacher';
-    document.getElementById('mode-btn').textContent='蘇博仁 技術長';
-    renderQuizEditor(); renderTeacherSigns();
-  } else {
-    toast('❌ 密碼錯誤');
-    document.getElementById('pw-input').value='';
-  }
+  if(document.getElementById('pw-input').value===TEACHER_PW){
+    isTeacher=true;document.getElementById('teacher-lock').style.display='none';document.getElementById('teacher-panel').style.display='block';
+    document.getElementById('mode-btn').className='hdr-mode teacher';document.getElementById('mode-btn').textContent='蘇博仁 技術長';
+    renderQuizEditor();renderTeacherSigns();renderExamOpenBadge();renderTeacherScores();
+  }else{toast('❌ 密碼錯誤');document.getElementById('pw-input').value='';}
 }
 function lockTeacher(){
-  isTeacher = false;
-  document.getElementById('teacher-lock').style.display='block';
-  document.getElementById('teacher-panel').style.display='none';
-  document.getElementById('pw-input').value='';
-  document.getElementById('mode-btn').className='hdr-mode';
-  document.getElementById('mode-btn').textContent='技術長';
-  goPage('home');
+  isTeacher=false;document.getElementById('teacher-lock').style.display='block';document.getElementById('teacher-panel').style.display='none';
+  document.getElementById('pw-input').value='';document.getElementById('mode-btn').className='hdr-mode';document.getElementById('mode-btn').textContent='技術長';goPage('home');
 }
-function toggleMode(){ goPage('teacher'); }
-function renderTeacher(){
-  if(isTeacher){ renderQuizEditor(); renderTeacherSigns(); renderPhotoGrid(); renderTeacherScores(); }
+function toggleMode(){goPage('teacher');}
+function renderTeacher(){if(isTeacher){renderQuizEditor();renderTeacherSigns();renderPhotoGrid();renderTeacherScores();renderExamOpenBadge();}}
+
+/* ══ QR 碼功能 ══ */
+function getExamURL(){return window.location.href.split('?')[0]+'?exam=1';}
+function generateQR(){
+  const url=getExamURL(),area=document.getElementById('qr-area'),div=document.getElementById('qr-code-div');
+  div.innerHTML='';area.style.display='block';document.getElementById('qr-url-display').textContent=url;
+  try{
+    new QRCode(div,{text:url,width:200,height:200,colorDark:'#0C3A6B',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});
+    toast('✅ QR 碼已產生，學員掃描即可進入考試');
+  }catch(e){div.innerHTML=`<div style="padding:20px;text-align:center;font-size:13px;color:var(--text2)">網址：<br><a href="${url}" style="color:var(--blue);word-break:break-all">${url}</a></div>`;}
+}
+function saveQRImage(){
+  const c=document.querySelector('#qr-code-div canvas');
+  if(!c){toast('⚠️ 請先產生 QR 碼');return;}
+  const a=document.createElement('a');a.download='SBR考試QRcode.png';a.href=c.toDataURL();a.click();toast('✅ QR 圖片已儲存');
+}
+function toggleExamOpen(){
+  db.examOpen=!db.examOpen;saveDB();renderExamOpenBadge();renderExamReady();
+  toast(db.examOpen?'✅ 考試已開放，學員可開始作答':'🔒 考試已關閉');
+}
+function renderExamOpenBadge(){
+  const badge=document.getElementById('exam-open-badge'),btn=document.getElementById('exam-toggle-btn');if(!badge||!btn)return;
+  if(db.examOpen){badge.innerHTML='<span class="exam-mode-badge exam-mode-open">✅ 開放中</span>';btn.style.cssText='flex:1;font-weight:700;background:var(--red-lt);color:var(--red);border:none;border-radius:12px;padding:12px;cursor:pointer;';btn.textContent='🔒 關閉考試';}
+  else{badge.innerHTML='<span class="exam-mode-badge exam-mode-closed">🔒 未開放</span>';btn.style.cssText='flex:1;font-weight:700;background:var(--green-lt);color:var(--green);border:none;border-radius:12px;padding:12px;cursor:pointer;';btn.textContent='✅ 開放考試';}
 }
 
-// ══ TEACHER SCORES ══
+/* ══ 學員成績 ══ */
 function renderTeacherScores(){
-  const el = document.getElementById('teacher-score-list');
-  if(!el) return;
-  const filter = document.getElementById('score-site-filter')?.value || 'all';
-
-  // 整理每位學員最新成績
-  const allMembers = [...MEMBERS['永康'].map(n=>({name:n,site:'永康'})), ...MEMBERS['歸仁'].map(n=>({name:n,site:'歸仁'}))];
-  const filtered = filter==='all' ? allMembers : allMembers.filter(m=>m.site===filter);
-
-  if(!db.scores.length){
-    el.innerHTML='<div style="padding:16px;text-align:center;color:var(--text3);font-size:13px">尚無成績記錄</div>';
-    return;
-  }
-
-  const rows = filtered.map(m=>{
-    const myScores = db.scores.filter(s=>s.name===m.name);
-    if(!myScores.length) return null;
-    const last = myScores[myScores.length-1];
-    const avg = Math.round(myScores.reduce((a,s)=>a+s.score,0)/myScores.length);
-    const best = Math.max(...myScores.map(s=>s.score));
-    const trend = myScores.length>=2 ? (myScores[myScores.length-1].score - myScores[myScores.length-2].score) : 0;
-    return {name:m.name, site:m.site, last:last.score, avg, best, times:myScores.length, trend};
-  }).filter(Boolean).sort((a,b)=>b.last-a.last);
-
-  if(!rows.length){
-    el.innerHTML='<div style="padding:16px;text-align:center;color:var(--text3);font-size:13px">此廠別尚無成績</div>';
-    return;
-  }
-
-  el.innerHTML = rows.map((r,i)=>{
-    const scoreColor = r.last>=80?'var(--green)':r.last>=60?'var(--amber)':'var(--red)';
-    const trendIcon = r.trend>0?'↑':r.trend<0?'↓':'—';
-    const trendColor = r.trend>0?'var(--green)':r.trend<0?'var(--red)':'var(--text3)';
-    const barW = r.last;
-    return `<div style="padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;" onclick="openStudentChart('${r.name}','${r.site}')">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:7px;">
-        <div style="width:24px;text-align:center;font-size:12px;font-weight:800;color:var(--text3)">${i+1}</div>
-        <div style="width:32px;height:32px;border-radius:50%;background:var(--blue-lt);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:var(--blue);flex-shrink:0">${r.name[0]}</div>
-        <div style="flex:1;">
-          <div style="font-size:14px;font-weight:700;">${r.name} <span style="font-size:11px;color:var(--text3);font-weight:400">${r.site}廠</span></div>
-          <div style="font-size:11px;color:var(--text3);">考${r.times}次 ｜ 平均${r.avg}分 ｜ 最高${r.best}分</div>
-        </div>
-        <div style="text-align:right;">
-          <div style="font-size:20px;font-weight:900;color:${scoreColor};line-height:1">${r.last}</div>
-          <div style="font-size:11px;color:${trendColor};font-weight:700">${trendIcon}${Math.abs(r.trend)||''}</div>
-        </div>
-      </div>
-      <div style="height:6px;background:#E5E5EA;border-radius:99px;overflow:hidden;margin-left:66px;">
-        <div style="height:100%;width:${barW}%;background:${scoreColor};border-radius:99px;transition:width .8s ease;"></div>
-      </div>
-    </div>`;
+  const el=document.getElementById('teacher-score-list'),se=document.getElementById('score-summary');if(!el)return;
+  const filter=document.getElementById('score-site-filter')?.value||'all';
+  const all=[...MEMBERS['永康'].map(n=>({name:n,site:'永康'})),...MEMBERS['歸仁'].map(n=>({name:n,site:'歸仁'}))];
+  const filtered=filter==='all'?all:all.filter(m=>m.site===filter);
+  if(!db.scores.length){el.innerHTML='<div style="padding:16px;text-align:center;color:var(--text3);font-size:13px">尚無成績記錄</div>';if(se)se.innerHTML='';return;}
+  const rows=filtered.map(m=>{const ms=db.scores.filter(s=>s.name===m.name);if(!ms.length)return null;const last=ms[ms.length-1];const avg=Math.round(ms.reduce((a,s)=>a+s.score,0)/ms.length);const best=Math.max(...ms.map(s=>s.score));const trend=ms.length>=2?(ms[ms.length-1].score-ms[ms.length-2].score):0;return{name:m.name,site:m.site,last:last.score,avg,best,times:ms.length,trend};}).filter(Boolean).sort((a,b)=>b.last-a.last);
+  if(se&&rows.length){const ta=Math.round(rows.reduce((a,r)=>a+r.last,0)/rows.length),pr=Math.round(rows.filter(r=>r.last>=60).length/rows.length*100);se.innerHTML=`<div style="background:var(--blue-lt);padding:12px;text-align:center;"><div style="font-size:22px;font-weight:900;color:var(--blue)">${rows.length}</div><div style="font-size:10px;color:var(--text3);font-weight:700;">已作答</div></div><div style="background:var(--amber-lt);padding:12px;text-align:center;"><div style="font-size:22px;font-weight:900;color:var(--amber)">${ta}</div><div style="font-size:10px;color:var(--text3);font-weight:700;">平均分</div></div><div style="background:var(--green-lt);padding:12px;text-align:center;"><div style="font-size:22px;font-weight:900;color:var(--green)">${pr}%</div><div style="font-size:10px;color:var(--text3);font-weight:700;">及格率</div></div>`;}
+  if(!rows.length){el.innerHTML='<div style="padding:16px;text-align:center;color:var(--text3);font-size:13px">此廠別尚無成績</div>';return;}
+  el.innerHTML=rows.map((r,i)=>{const sc=r.last>=80?'var(--green)':r.last>=60?'var(--amber)':'var(--red)';const ti=r.trend>0?'↑':r.trend<0?'↓':'—';const tc=r.trend>0?'var(--green)':r.trend<0?'var(--red)':'var(--text3)';
+    return`<div style="padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;" onclick="openStudentChart('${r.name}','${r.site}')"><div style="display:flex;align-items:center;gap:10px;margin-bottom:7px;"><div style="width:24px;text-align:center;font-size:12px;font-weight:800;color:var(--text3)">${i+1}</div><div style="width:32px;height:32px;border-radius:50%;background:var(--blue-lt);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:var(--blue);flex-shrink:0">${r.name[0]}</div><div style="flex:1;"><div style="font-size:14px;font-weight:700;">${r.name} <span style="font-size:11px;color:var(--text3);font-weight:400">${r.site}廠</span></div><div style="font-size:11px;color:var(--text3);">考${r.times}次 ｜ 平均${r.avg}分 ｜ 最高${r.best}分</div></div><div style="text-align:right;"><div style="font-size:20px;font-weight:900;color:${sc};line-height:1">${r.last}</div><div style="font-size:11px;color:${tc};font-weight:700">${ti}${Math.abs(r.trend)||''}</div></div></div><div style="height:6px;background:#E5E5EA;border-radius:99px;overflow:hidden;margin-left:66px;"><div style="height:100%;width:${r.last}%;background:${sc};border-radius:99px;transition:width .8s ease;"></div></div></div>`;
   }).join('');
 }
 
-function openStudentChart(name, site){
-  const myScores = db.scores.filter(s=>s.name===name);
-  if(!myScores.length){ toast('此學員尚無成績記錄'); return; }
-
-  document.getElementById('chart-name').textContent = name;
-  document.getElementById('chart-name-avatar').textContent = name[0];
-  document.getElementById('chart-site').textContent = site+'廠';
-
-  // 統計數據
-  const avg = Math.round(myScores.reduce((a,s)=>a+s.score,0)/myScores.length);
-  const best = Math.max(...myScores.map(s=>s.score));
-  const worst = Math.min(...myScores.map(s=>s.score));
-  const passRate = Math.round(myScores.filter(s=>s.score>=60).length/myScores.length*100);
-
-  document.getElementById('chart-avg').textContent = avg+'分';
-  document.getElementById('chart-best').textContent = best+'分';
-  document.getElementById('chart-worst').textContent = worst+'分';
-  document.getElementById('chart-pass').textContent = passRate+'%';
-
-  // 折線圖（SVG）
-  const last8 = myScores.slice(-8);
-  const W=280, H=100, pad=20;
-  const maxS=100, minS=0;
-  const pts = last8.map((s,i)=>{
-    const x = pad + (i/(Math.max(last8.length-1,1)))*(W-pad*2);
-    const y = H - pad - ((s.score-minS)/(maxS-minS))*(H-pad*2);
-    return {x,y,s};
-  });
-  const passY = H - pad - ((60-minS)/(maxS-minS))*(H-pad*2);
-
-  const polyline = pts.map(p=>`${p.x},${p.y}`).join(' ');
-  const areaPath = `M${pts[0].x},${H-pad} `+pts.map(p=>`L${p.x},${p.y}`).join(' ')+` L${pts[pts.length-1].x},${H-pad} Z`;
-
-  const svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
-    <!-- 及格線 -->
-    <line x1="${pad}" y1="${passY}" x2="${W-pad}" y2="${passY}" stroke="#E5E5EA" stroke-width="1" stroke-dasharray="4,3"/>
-    <text x="${pad+2}" y="${passY-3}" font-size="8" fill="#AEAEB2">60分</text>
-    <!-- 面積 -->
-    <path d="${areaPath}" fill="rgba(24,95,165,0.08)"/>
-    <!-- 折線 -->
-    <polyline points="${polyline}" fill="none" stroke="#185FA5" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-    <!-- 點 -->
-    ${pts.map((p,i)=>`
-      <circle cx="${p.x}" cy="${p.y}" r="4" fill="${p.s.score>=80?'#2A7D1A':p.s.score>=60?'#B7770D':'#C0392B'}" stroke="#fff" stroke-width="1.5"/>
-      <text x="${p.x}" y="${p.y-7}" text-anchor="middle" font-size="8" font-weight="bold" fill="${p.s.score>=80?'#2A7D1A':p.s.score>=60?'#B7770D':'#C0392B'}">${p.s.score}</text>
-    `).join('')}
-    <!-- X軸日期 -->
-    ${pts.map((p,i)=>`<text x="${p.x}" y="${H-4}" text-anchor="middle" font-size="7" fill="#AEAEB2">${last8[i].date.slice(5)}</text>`).join('')}
-  </svg>`;
-
-  document.getElementById('chart-svg').innerHTML = svg;
-
-  // 答題明細（最近一次）
-  const lastRec = myScores[myScores.length-1];
-  document.getElementById('chart-detail').innerHTML = `
-    <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px;">最近一次：${lastRec.date} ${lastRec.time||''}</div>
-    <div style="display:flex;gap:8px;">
-      <div style="flex:1;background:var(--green-lt);border-radius:8px;padding:8px;text-align:center;">
-        <div style="font-size:20px;font-weight:900;color:var(--green)">${lastRec.correct||'—'}</div>
-        <div style="font-size:10px;color:var(--text3)">答對題數</div>
-      </div>
-      <div style="flex:1;background:var(--red-lt);border-radius:8px;padding:8px;text-align:center;">
-        <div style="font-size:20px;font-weight:900;color:var(--red)">${lastRec.total-(lastRec.correct||0)}</div>
-        <div style="font-size:10px;color:var(--text3)">答錯題數</div>
-      </div>
-      <div style="flex:1;background:var(--blue-lt);border-radius:8px;padding:8px;text-align:center;">
-        <div style="font-size:20px;font-weight:900;color:var(--blue)">${lastRec.total||'—'}</div>
-        <div style="font-size:10px;color:var(--text3)">總題數</div>
-      </div>
-    </div>`;
-
+function openStudentChart(name,site){
+  const ms=db.scores.filter(s=>s.name===name);if(!ms.length){toast('此學員尚無成績記錄');return;}
+  document.getElementById('chart-name').textContent=name;document.getElementById('chart-name-avatar').textContent=name[0];document.getElementById('chart-site').textContent=site+'廠';
+  const avg=Math.round(ms.reduce((a,s)=>a+s.score,0)/ms.length),best=Math.max(...ms.map(s=>s.score)),worst=Math.min(...ms.map(s=>s.score)),pr=Math.round(ms.filter(s=>s.score>=60).length/ms.length*100);
+  document.getElementById('chart-avg').textContent=avg+'分';document.getElementById('chart-best').textContent=best+'分';document.getElementById('chart-worst').textContent=worst+'分';document.getElementById('chart-pass').textContent=pr+'%';
+  const l8=ms.slice(-8),W=280,H=100,pad=20;
+  const pts=l8.map((s,i)=>({x:pad+(i/(Math.max(l8.length-1,1)))*(W-pad*2),y:H-pad-(s.score/100)*(H-pad*2),s}));
+  const py=H-pad-(60/100)*(H-pad*2),pl=pts.map(p=>`${p.x},${p.y}`).join(' '),ap=`M${pts[0].x},${H-pad} `+pts.map(p=>`L${p.x},${p.y}`).join(' ')+` L${pts[pts.length-1].x},${H-pad} Z`;
+  document.getElementById('chart-svg').innerHTML=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;"><line x1="${pad}" y1="${py}" x2="${W-pad}" y2="${py}" stroke="#E5E5EA" stroke-width="1" stroke-dasharray="4,3"/><text x="${pad+2}" y="${py-3}" font-size="8" fill="#AEAEB2">60分</text><path d="${ap}" fill="rgba(24,95,165,0.08)"/><polyline points="${pl}" fill="none" stroke="#185FA5" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>${pts.map((p,i)=>`<circle cx="${p.x}" cy="${p.y}" r="4" fill="${p.s.score>=80?'#2A7D1A':p.s.score>=60?'#B7770D':'#C0392B'}" stroke="#fff" stroke-width="1.5"/><text x="${p.x}" y="${p.y-7}" text-anchor="middle" font-size="8" font-weight="bold" fill="${p.s.score>=80?'#2A7D1A':p.s.score>=60?'#B7770D':'#C0392B'}">${p.s.score}</text>`).join('')}${pts.map((p,i)=>`<text x="${p.x}" y="${H-4}" text-anchor="middle" font-size="7" fill="#AEAEB2">${l8[i].date.slice(5)}</text>`).join('')}</svg>`;
+  const lr=ms[ms.length-1];
+  document.getElementById('chart-detail').innerHTML=`<div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px;">最近一次：${lr.date} ${lr.time||''}</div><div style="display:flex;gap:8px;"><div style="flex:1;background:var(--green-lt);border-radius:8px;padding:8px;text-align:center;"><div style="font-size:20px;font-weight:900;color:var(--green)">${lr.correct||'—'}</div><div style="font-size:10px;color:var(--text3)">答對</div></div><div style="flex:1;background:var(--red-lt);border-radius:8px;padding:8px;text-align:center;"><div style="font-size:20px;font-weight:900;color:var(--red)">${lr.total-(lr.correct||0)}</div><div style="font-size:10px;color:var(--text3)">答錯</div></div><div style="flex:1;background:var(--blue-lt);border-radius:8px;padding:8px;text-align:center;"><div style="font-size:20px;font-weight:900;color:var(--blue)">${lr.total||'—'}</div><div style="font-size:10px;color:var(--text3)">總題數</div></div></div>`;
   document.getElementById('modal-chart').classList.add('open');
 }
 
 function renderTeacherSigns(){
-  const today = new Date().toLocaleDateString('zh-TW');
-  const rec = db.signs[today] || {};
-  const list = Object.entries(rec);
-  document.getElementById('sign-count-badge').textContent = list.length+'人';
-  document.getElementById('teacher-sign-list').innerHTML = list.length
-    ? list.map(([n,i])=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border)"><span style="font-size:14px;flex:1">${n}</span><span style="font-size:11px;color:var(--text3)">${i.site}廠 · ${i.time}</span></div>`).join('')
-    : '<div style="padding:16px;text-align:center;color:var(--text3);font-size:13px">今日尚無人簽到</div>';
+  const today=new Date().toLocaleDateString('zh-TW'),rec=db.signs[today]||{},list=Object.entries(rec);
+  document.getElementById('sign-count-badge').textContent=list.length+'人';
+  document.getElementById('teacher-sign-list').innerHTML=list.length?list.map(([n,i])=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border)"><span style="font-size:14px;flex:1">${n}</span><span style="font-size:11px;color:var(--text3)">${i.site}廠 · ${i.time}</span></div>`).join(''):'<div style="padding:16px;text-align:center;color:var(--text3);font-size:13px">今日尚無人簽到</div>';
 }
 
-// ══ QUIZ EDITOR ══
 function renderQuizEditor(){
-  const el = document.getElementById('quiz-editor');
-  if(!el) return;
-  const qs = db.questions;
-  if(!qs.length){ el.innerHTML='<div style="padding:16px;text-align:center;color:var(--text3);font-size:13px">尚無題目，請新增或使用 AI 生成</div>'; return; }
-  el.innerHTML = qs.map((q,i)=>`
-    <div class="eq-item">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
-        <div class="eq-q" style="flex:1">Q${i+1}. ${q.q}</div>
-        <button onclick="deleteQ(${q.id})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;padding:0 0 0 8px;">🗑</button>
-      </div>
-      <div class="eq-opts">
-        ${[['A',q.a],['B',q.b],['C',q.c],['D',q.d]].filter(x=>x[1]).map(([l,v])=>`
-          <div class="eq-opt">
-            <input type="radio" name="ans-${q.id}" ${q.ans===l?'checked':''} onchange="setAns(${q.id},'${l}')">
-            <span>${l}. ${v}</span>
-          </div>`).join('')}
-      </div>
-      <div style="margin-top:6px;font-size:11px;color:var(--text3)">正解：<strong style="color:var(--green)">${q.ans}</strong>${q.exp?` ｜ 解析：${q.exp}`:''}</div>
-    </div>`).join('');
+  const el=document.getElementById('quiz-editor');if(!el)return;
+  const qs=db.questions;if(!qs.length){el.innerHTML='<div style="padding:16px;text-align:center;color:var(--text3);font-size:13px">尚無題目，請新增或使用 AI 生成</div>';return;}
+  el.innerHTML=qs.map((q,i)=>`<div class="eq-item"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px"><div class="eq-q" style="flex:1">Q${i+1}. ${q.q}</div><button onclick="deleteQ(${q.id})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;padding:0 0 0 8px;">🗑</button></div><div class="eq-opts">${[['A',q.a],['B',q.b],['C',q.c],['D',q.d]].filter(x=>x[1]).map(([l,v])=>`<div class="eq-opt"><input type="radio" name="ans-${q.id}" ${q.ans===l?'checked':''} onchange="setAns(${q.id},'${l}')"><span>${l}. ${v}</span></div>`).join('')}</div><div style="margin-top:6px;font-size:11px;color:var(--text3)">正解：<strong style="color:var(--green)">${q.ans}</strong>${q.exp?` ｜ 解析：${q.exp}`:''}</div></div>`).join('');
 }
-function openAddQ(){ document.getElementById('modal-addq').classList.add('open'); }
+function openAddQ(){document.getElementById('modal-addq').classList.add('open');}
 function saveQ(){
-  const q=document.getElementById('aq-q').value.trim();
-  const a=document.getElementById('aq-a').value.trim();
-  const b=document.getElementById('aq-b').value.trim();
-  if(!q||!a||!b){ toast('⚠️ 題目與A、B為必填'); return; }
-  db.questions.push({ id:Date.now(), q, a, b, c:document.getElementById('aq-c').value.trim(), d:document.getElementById('aq-d').value.trim(), ans:document.getElementById('aq-ans').value, exp:document.getElementById('aq-exp').value.trim() });
-  saveDB(); closeModal('modal-addq');
-  ['aq-q','aq-a','aq-b','aq-c','aq-d','aq-exp'].forEach(id=>document.getElementById(id).value='');
-  renderQuizEditor(); toast('✅ 題目已新增');
+  const q=document.getElementById('aq-q').value.trim(),a=document.getElementById('aq-a').value.trim(),b=document.getElementById('aq-b').value.trim();
+  if(!q||!a||!b){toast('⚠️ 題目與A、B為必填');return;}
+  db.questions.push({id:Date.now(),q,a,b,c:document.getElementById('aq-c').value.trim(),d:document.getElementById('aq-d').value.trim(),ans:document.getElementById('aq-ans').value,exp:document.getElementById('aq-exp').value.trim()});
+  saveDB();closeModal('modal-addq');['aq-q','aq-a','aq-b','aq-c','aq-d','aq-exp'].forEach(id=>document.getElementById(id).value='');renderQuizEditor();toast('✅ 題目已新增');
 }
-function setAns(id, ans){
-  const q = db.questions.find(x=>x.id===id);
-  if(q){ q.ans=ans; saveDB(); }
-}
-function deleteQ(id){
-  db.questions = db.questions.filter(x=>x.id!==id);
-  saveDB(); renderQuizEditor(); toast('🗑 題目已刪除');
-}
+function setAns(id,ans){const q=db.questions.find(x=>x.id===id);if(q){q.ans=ans;saveDB();}}
+function deleteQ(id){db.questions=db.questions.filter(x=>x.id!==id);saveDB();renderQuizEditor();toast('🗑 題目已刪除');}
 
-
-// ══ PHOTOS ══
-let photos = ['','','','','','']; // 6格 base64
-let pendingSlot = -1;
-
+let photos=['','','','','',''],pendingSlot=-1;
 function renderPhotoGrid(){
-  const grid = document.getElementById('photo-grid');
-  if(!grid) return;
-  grid.innerHTML = photos.map((p,i)=>`
-    <div class="photo-slot" onclick="clickSlot(${i})">
-      ${p ? `<img src="${p}"><div class="slot-del" onclick="event.stopPropagation();removePhoto(${i})">✕</div>` : `<div class="slot-add">📷</div><div class="slot-num">${i+1}</div>`}
-    </div>`).join('');
+  const g=document.getElementById('photo-grid');if(!g)return;
+  g.innerHTML=photos.map((p,i)=>`<div class="photo-slot" onclick="clickSlot(${i})">${p?`<img src="${p}"><div class="slot-del" onclick="event.stopPropagation();removePhoto(${i})">✕</div>`:`<div class="slot-add">📷</div><div class="slot-num">${i+1}</div>`}</div>`).join('');
 }
-function clickSlot(i){
-  if(photos[i]){ previewPhoto(i); return; }
-  if(photos.filter(Boolean).length >= 6){ toast('⚠️ 最多6張圖片'); return; }
-  pendingSlot = i;
-  document.getElementById('modal-photo-src').classList.add('open');
-}
-function pickCamera(){
-  closeModal('modal-photo-src');
-  document.getElementById('photo-camera').value='';
-  document.getElementById('photo-camera').click();
-}
-function pickAlbum(){
-  closeModal('modal-photo-src');
-  document.getElementById('photo-album').value='';
-  document.getElementById('photo-album').click();
-}
-function previewPhoto(i){
-  if(!photos[i]) return;
-  document.getElementById('preview-img').src = photos[i];
-  document.getElementById('preview-slot-idx').value = i;
-  document.getElementById('modal-preview').classList.add('open');
-}
-function deletePreviewPhoto(){
-  const i = parseInt(document.getElementById('preview-slot-idx').value);
-  photos[i]=''; renderPhotoGrid();
-  closeModal('modal-preview');
-}
+function clickSlot(i){if(photos[i]){previewPhoto(i);return;}if(photos.filter(Boolean).length>=6){toast('⚠️ 最多6張圖片');return;}pendingSlot=i;document.getElementById('modal-photo-src').classList.add('open');}
+function pickCamera(){closeModal('modal-photo-src');document.getElementById('photo-camera').value='';document.getElementById('photo-camera').click();}
+function pickAlbum(){closeModal('modal-photo-src');document.getElementById('photo-album').value='';document.getElementById('photo-album').click();}
+function previewPhoto(i){if(!photos[i])return;document.getElementById('preview-img').src=photos[i];document.getElementById('preview-slot-idx').value=i;document.getElementById('modal-preview').classList.add('open');}
+function deletePreviewPhoto(){const i=parseInt(document.getElementById('preview-slot-idx').value);photos[i]='';renderPhotoGrid();closeModal('modal-preview');}
 function onPhotoSelect(e){
-  document.getElementById('photo-camera').value='';
-  document.getElementById('photo-album').value='';
-
-  const file = e.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    // 壓縮圖片
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      const max = 800;
-      let w = img.width, h = img.height;
-      if(w > max){ h = h*max/w; w = max; }
-      if(h > max){ w = w*max/h; h = max; }
-      canvas.width = w; canvas.height = h;
-      canvas.getContext('2d').drawImage(img,0,0,w,h);
-      const idx = pendingSlot >= 0 ? pendingSlot : photos.findIndex(p=>!p);
-      if(idx >= 0){ photos[idx] = canvas.toDataURL('image/jpeg',0.75); }
-      renderPhotoGrid();
-    };
-    img.src = ev.target.result;
-  };
+  document.getElementById('photo-camera').value='';document.getElementById('photo-album').value='';
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{const img=new Image();img.onload=()=>{const c=document.createElement('canvas');const max=800;let w=img.width,h=img.height;if(w>max){h=h*max/w;w=max;}if(h>max){w=w*max/h;h=max;}c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);const idx=pendingSlot>=0?pendingSlot:photos.findIndex(p=>!p);if(idx>=0)photos[idx]=c.toDataURL('image/jpeg',0.75);renderPhotoGrid();};img.src=ev.target.result;};
   reader.readAsDataURL(file);
 }
-function removePhoto(i){ photos[i]=''; renderPhotoGrid(); }
-function clearAll(){
-  document.getElementById('rec-text').value='';
-  photos = ['','','','','',''];
-  renderPhotoGrid();
-}
+function removePhoto(i){photos[i]='';renderPhotoGrid();}
+function clearAll(){document.getElementById('rec-text').value='';photos=['','','','','',''];renderPhotoGrid();}
 
-// ══ VOICE RECORD ══
 async function toggleRecord(){
-  if(isRecording){
-    if(mediaRec) mediaRec.stop();
-    isRecording=false;
-    document.getElementById('rec-btn').textContent='🎙️ 按住開始錄音';
-    document.getElementById('rec-btn').classList.remove('recording');
-    document.getElementById('rec-indicator').classList.remove('show');
-  } else {
-    try{
-      if(!navigator.mediaDevices){ toast('⚠️ 此瀏覽器不支援錄音'); return; }
-      const stream = await navigator.mediaDevices.getUserMedia({audio:true});
-      const chunks=[];
-      mediaRec = new MediaRecorder(stream);
-      mediaRec.ondataavailable = e=>chunks.push(e.data);
-      mediaRec.onstop = async ()=>{
-        stream.getTracks().forEach(t=>t.stop());
-        toast('🔄 正在辨識語音...');
-        // 用 SpeechRecognition 轉文字
-        const blob = new Blob(chunks, {type:'audio/webm'});
-        const url = URL.createObjectURL(blob);
-        // 提示用戶（因為瀏覽器安全限制，Web Speech API 無法讀取 MediaRecorder blob）
-        document.getElementById('rec-text').placeholder='語音辨識完成後請在此編輯教材內容...';
-        toast('✅ 錄音完成！請在文字框輸入或修改內容');
-      };
-      mediaRec.start();
-      isRecording=true;
-      document.getElementById('rec-btn').textContent='⏹ 點此停止錄音';
-      document.getElementById('rec-btn').classList.add('recording');
-      document.getElementById('rec-indicator').classList.add('show');
-      // 同時啟動 Web Speech API 即時轉文字
-      if('webkitSpeechRecognition' in window || 'SpeechRecognition' in window){
-        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-        const sr = new SR();
-        sr.lang='zh-TW'; sr.continuous=true; sr.interimResults=true;
-        sr.onresult = e=>{
-          let final='';
-          for(let i=e.resultIndex;i<e.results.length;i++){
-            if(e.results[i].isFinal) final+=e.results[i][0].transcript;
-          }
-          if(final) document.getElementById('rec-text').value += final;
-        };
-        sr.start();
-        mediaRec.onstop = ()=>{ sr.stop(); stream.getTracks().forEach(t=>t.stop()); toast('✅ 錄音完成！'); };
-      }
-    } catch(e){
-      toast('⚠️ 無法存取麥克風：'+e.message);
-    }
+  if(isRecording){if(mediaRec)mediaRec.stop();isRecording=false;document.getElementById('rec-btn').textContent='🎙️ 按住開始錄音';document.getElementById('rec-btn').classList.remove('recording');document.getElementById('rec-indicator').classList.remove('show');}
+  else{
+    try{if(!navigator.mediaDevices){toast('⚠️ 此瀏覽器不支援錄音');return;}
+      const stream=await navigator.mediaDevices.getUserMedia({audio:true});const chunks=[];
+      mediaRec=new MediaRecorder(stream);mediaRec.ondataavailable=e=>chunks.push(e.data);
+      mediaRec.onstop=()=>{stream.getTracks().forEach(t=>t.stop());toast('✅ 錄音完成！');};
+      mediaRec.start();isRecording=true;document.getElementById('rec-btn').textContent='⏹ 點此停止錄音';document.getElementById('rec-btn').classList.add('recording');document.getElementById('rec-indicator').classList.add('show');
+      if('webkitSpeechRecognition' in window||'SpeechRecognition' in window){const SR=window.SpeechRecognition||window.webkitSpeechRecognition,sr=new SR();sr.lang='zh-TW';sr.continuous=true;sr.interimResults=true;sr.onresult=e=>{let f='';for(let i=e.resultIndex;i<e.results.length;i++){if(e.results[i].isFinal)f+=e.results[i][0].transcript;}if(f)document.getElementById('rec-text').value+=f;};sr.start();mediaRec.onstop=()=>{sr.stop();stream.getTracks().forEach(t=>t.stop());toast('✅ 錄音完成！');};}
+    }catch(e){toast('⚠️ 無法存取麥克風：'+e.message);}
   }
 }
 
-// ══ AI 出題 ══
 async function aiGenerateQuiz(){
-  const content = document.getElementById('rec-text').value.trim();
-  if(!content){ toast('⚠️ 請先輸入教材內容'); return; }
-  document.getElementById('modal-ai').classList.add('open');
-  document.getElementById('ai-status').textContent='正在分析教材內容...';
+  const content=document.getElementById('rec-text').value.trim();if(!content){toast('⚠️ 請先輸入教材內容');return;}
+  document.getElementById('modal-ai').classList.add('open');document.getElementById('ai-status').textContent='正在分析教材內容...';
   try{
-    const resp = await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        model:'claude-sonnet-4-20250514',
-        max_tokens:1000,
-        messages:[{role:'user',content:`請根據以下教材內容，生成5題繁體中文單選題。每題4個選項（A、B、C、D），並標示正確答案和簡短解析。請只回傳JSON格式，不要其他說明文字。格式如下：
-[{"q":"題目","a":"選項A","b":"選項B","c":"選項C","d":"選項D","ans":"A","exp":"解析"}]
-
-教材內容：
-${content.slice(0,2000)}`}]
-      })
-    });
-    const data = await resp.json();
-    const raw = data.content.find(c=>c.type==='text')?.text || '[]';
-    const clean = raw.replace(/```json|```/g,'').trim();
-    const qs = JSON.parse(clean);
-    qs.forEach(q=>{ db.questions.push({id:Date.now()+Math.random(),q:q.q,a:q.a,b:q.b,c:q.c||'',d:q.d||'',ans:q.ans,exp:q.exp||''}); });
-    saveDB();
-    document.getElementById('modal-ai').classList.remove('open');
-    renderQuizEditor();
-    toast(`✅ AI 已生成 ${qs.length} 題，可在下方修改`);
-  } catch(e){
-    document.getElementById('modal-ai').classList.remove('open');
-    toast('❌ AI 生成失敗：'+e.message);
-  }
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:`請根據以下教材內容，生成5題繁體中文單選題。每題4個選項（A、B、C、D），並標示正確答案和簡短解析。請只回傳JSON格式，不要其他說明文字。格式如下：\n[{"q":"題目","a":"選項A","b":"選項B","c":"選項C","d":"選項D","ans":"A","exp":"解析"}]\n\n教材內容：\n${content.slice(0,2000)}`}]})});
+    const data=await resp.json();const raw=data.content.find(c=>c.type==='text')?.text||'[]';const qs=JSON.parse(raw.replace(/```json|```/g,'').trim());
+    qs.forEach(q=>{db.questions.push({id:Date.now()+Math.random(),q:q.q,a:q.a,b:q.b,c:q.c||'',d:q.d||'',ans:q.ans,exp:q.exp||''});});
+    saveDB();document.getElementById('modal-ai').classList.remove('open');renderQuizEditor();toast(`✅ AI 已生成 ${qs.length} 題`);
+  }catch(e){document.getElementById('modal-ai').classList.remove('open');toast('❌ AI 生成失敗：'+e.message);}
 }
 
-// ══ MODAL / TOAST ══
-function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+function closeModal(id){document.getElementById(id).classList.remove('open');}
 let toastT;
-function toast(msg){
-  const el=document.getElementById('toast');
-  el.textContent=msg; el.classList.add('show');
-  clearTimeout(toastT);
-  toastT=setTimeout(()=>el.classList.remove('show'),2400);
-}
+function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),2400);}
 
-// ══ SERVICE WORKER (PWA) ══
-if('serviceWorker' in navigator){
-  window.addEventListener('load', ()=>{
-    navigator.serviceWorker.register('./sw.js').catch(e=>console.warn('SW:', e));
-  });
-}
+if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(e=>console.warn('SW:',e)));
 </script>
 </body>
 </html>
