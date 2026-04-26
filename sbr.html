@@ -455,14 +455,22 @@ let examQ=[],examIdx=0,examAns=[],mediaRec=null,isRecording=false,qrInstance=nul
 function loadDB(){try{return JSON.parse(localStorage.getItem(KEY))||initDB();}catch(e){return initDB();}}
 function initDB(){return{signs:{},scores:[],materials:[],questions:[],examOpen:false};}
 
-window.addEventListener('load',async()=>{
+window.addEventListener('load',()=>{
   initCanvas();
   const params=new URLSearchParams(window.location.search);
   if(params.get('exam')==='1')setTimeout(()=>goPage('exam'),1400);
   renderAll();
   setTimeout(()=>document.getElementById('splash').classList.add('out'),1200);
-  await loadFromCloud();
-  startRealtimeSync();
+  // 雲端同步在背景執行，不阻擋畫面
+  setTimeout(async()=>{
+    try{
+      await loadFromCloud();
+      startRealtimeSync();
+    }catch(e){
+      console.warn('雲端連線失敗，使用本地資料',e);
+      showSyncStatus('📱 本地模式',2000);
+    }
+  },1500);
 });
 
 function onSiteChange(){
