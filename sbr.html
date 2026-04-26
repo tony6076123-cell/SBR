@@ -105,8 +105,7 @@ canvas#signCanvas{display:block;width:100%;height:200px;touch-action:none;cursor
 .recording-indicator{display:none;align-items:center;gap:8px;padding:10px 14px;background:var(--red-lt);border-radius:10px;margin-bottom:10px;font-size:13px;color:var(--red);font-weight:700;}
 .recording-indicator.show{display:flex;}.rec-dot{width:10px;height:10px;border-radius:50%;background:var(--red);animation:blink-btn .6s infinite;}
 </style>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<!-- Firebase暫時移除 -->
 </head>
 <body>
 <div id="splash">
@@ -381,30 +380,20 @@ canvas#signCanvas{display:block;width:100%;height:200px;touch-action:none;cursor
 </div>
 
 <script>
-const firebaseConfig={apiKey:"AIzaSyCoeBRe_i2njEyDI0FPv9HXEGNxBb6eqg8",authDomain:"yongkank-63703.firebaseapp.com",projectId:"yongkank-63703",storageBucket:"yongkank-63703.firebasestorage.app",messagingSenderId:"353225693174",appId:"1:353225693174:web:3d70fafa51e3ab8c0219d7"};
-firebase.initializeApp(firebaseConfig);
-const fdb=firebase.firestore();
-const SBR_DOC=fdb.collection('sbr_training').doc('main_data');
+// Firebase 本地模式（測試用）
+const SBR_DOC={
+  get:async()=>({exists:false,data:()=>null}),
+  set:async()=>{},
+  onSnapshot:(cb,err)=>{}
+};
 
 async function loadFromCloud(){
-  try{
-    showSyncStatus('☁️ 連線中...');
-    const snap=await SBR_DOC.get();
-    if(snap.exists){
-      const d=snap.data();
-      if(d){db={...initDB(),...d};fixDB();}
-    }
-    showSyncStatus('✅ 雲端已同步',2000);
-  }catch(e){
-    console.warn('載入失敗',e);
-    showSyncStatus('📱 本地模式',2000);
-  }
+  showSyncStatus('📱 本地模式',2000);
   renderAll();
 }
 function fixDB(){if(!db.signs)db.signs={};if(!db.scores)db.scores=[];if(!db.materials)db.materials=[];if(!db.questions)db.questions=[];if(db.examOpen===undefined)db.examOpen=false;}
 window.fixDB=fixDB;
-window.renderAll=function(){renderAll();};
-window.db=db;
+// window.renderAll 由主程式 renderAll 提供
 window.showCloudToast=function(){showSyncStatus('🔄 已從雲端同步',2000);};
 
 let saveTimer=null;
@@ -423,20 +412,7 @@ async function saveDB(){
   },1500);
 }
 
-function startRealtimeSync(){
-  SBR_DOC.onSnapshot(snap=>{
-    if(snap.exists&&!snap.metadata.hasPendingWrites){
-      const d=snap.data();if(!d)return;
-      const cloudTs=d._ts||0,localTs=db._ts||0;
-      if(cloudTs>localTs){
-        db={...initDB(),...d};fixDB();
-        renderAll();
-        if(isTeacher){renderQuizEditor();renderTeacherSigns();renderTeacherScores();renderExamOpenBadge();}
-        showSyncStatus('🔄 已同步最新資料',2000);
-      }
-    }
-  },err=>console.warn('同步錯誤',err));
-}
+function startRealtimeSync(){}
 
 let syncTimer;
 function showSyncStatus(msg,hideAfter=0){
