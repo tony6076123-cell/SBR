@@ -381,41 +381,61 @@ canvas#signCanvas{display:block;width:100%;height:200px;touch-action:none;cursor
 </div>
 
 <script>
-const firebaseConfig={apiKey:"AIzaSyCj2IUVHkw0pSEPD5Bls8OpSxw4ce0efEY",authDomain:"body-shop-app-1875f.firebaseapp.com",projectId:"body-shop-app-1875f",storageBucket:"body-shop-app-1875f.firebasestorage.app",messagingSenderId:"27363412403",appId:"1:27363412403:web:ad96bfe23b21bfa2eda3c6"};
+const firebaseConfig={apiKey:"AIzaSyCoeBRe_i2njEyDI0FPv9HXEGNxBb6eqg8",authDomain:"yongkank-63703.firebaseapp.com",projectId:"yongkank-63703",storageBucket:"yongkank-63703.firebasestorage.app",messagingSenderId:"353225693174",appId:"1:353225693174:web:3d70fafa51e3ab8c0219d7"};
 firebase.initializeApp(firebaseConfig);
 const fdb=firebase.firestore();
-const SBR_DOC=fdb.collection('sbr').doc('main');
+const SBR_DOC=fdb.collection('sbr_training').doc('main_data');
 
 async function loadFromCloud(){
   try{
     showSyncStatus('☁️ 連線中...');
-    const doc=await SBR_DOC.get();
-    if(doc.exists){db={...initDB(),...doc.data()};fixDB();}
-    showSyncStatus('✅ 已同步',2000);
-  }catch(e){showSyncStatus('📱 離線模式',2000);}
+    const snap=await SBR_DOC.get();
+    if(snap.exists){
+      const d=snap.data();
+      if(d){db={...initDB(),...d};fixDB();}
+    }
+    showSyncStatus('✅ 雲端已同步',2000);
+  }catch(e){
+    console.warn('載入失敗',e);
+    showSyncStatus('📱 本地模式',2000);
+  }
   renderAll();
 }
 function fixDB(){if(!db.signs)db.signs={};if(!db.scores)db.scores=[];if(!db.materials)db.materials=[];if(!db.questions)db.questions=[];if(db.examOpen===undefined)db.examOpen=false;}
+window.fixDB=fixDB;
+window.renderAll=function(){renderAll();};
+window.db=db;
+window.showCloudToast=function(){showSyncStatus('🔄 已從雲端同步',2000);};
 
 let saveTimer=null;
 async function saveDB(){
   localStorage.setItem(KEY,JSON.stringify(db));
   clearTimeout(saveTimer);
   saveTimer=setTimeout(async()=>{
-    try{showSyncStatus('💾 儲存中...');await SBR_DOC.set(db);showSyncStatus('✅ 已儲存',1500);}
-    catch(e){showSyncStatus('⚠️ 離線儲存',2000);}
+    try{
+      db._ts=Date.now();
+      showSyncStatus('💾 同步中...');
+      await SBR_DOC.set(db);
+      showSyncStatus('✅ 已同步',1500);
+    }catch(e){
+      showSyncStatus('⚠️ 本地儲存',2000);
+    }
   },1500);
 }
 
 function startRealtimeSync(){
-  SBR_DOC.onSnapshot(doc=>{
-    if(doc.exists&&!doc.metadata.hasPendingWrites){
-      const r=doc.data();if(!r)return;
-      db={...initDB(),...r};fixDB();
-      renderAll();
-      if(isTeacher){renderQuizEditor();renderTeacherSigns();renderTeacherScores();renderExamOpenBadge();}
+  SBR_DOC.onSnapshot(snap=>{
+    if(snap.exists&&!snap.metadata.hasPendingWrites){
+      const d=snap.data();if(!d)return;
+      const cloudTs=d._ts||0,localTs=db._ts||0;
+      if(cloudTs>localTs){
+        db={...initDB(),...d};fixDB();
+        renderAll();
+        if(isTeacher){renderQuizEditor();renderTeacherSigns();renderTeacherScores();renderExamOpenBadge();}
+        showSyncStatus('🔄 已同步最新資料',2000);
+      }
     }
-  },err=>console.warn(err));
+  },err=>console.warn('同步錯誤',err));
 }
 
 let syncTimer;
@@ -479,13 +499,13 @@ function initCanvas(){
   }
   setupCanvas();
   window.addEventListener('resize',setupCanvas);
-  // 修正A：使用 Pointer Events API，同時支援觸控/滑鼠/手寫筆
-  const gp=e=>{const r=c.getBoundingClientRect();const ratio=window.devicePixelRatio||1;return{x:(e.clientX-r.left)*ratio,y:(e.clientY-r.top)*ratio};};
+  // 座標修正：不乘ratio（因為ctx.scale已處理），直接用CSS座標
+  const gp=e=>{const r=c.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};};
   c.style.touchAction='none';
   c.addEventListener('pointerdown',e=>{c.setPointerCapture(e.pointerId);signing=true;signCtx.beginPath();const p=gp(e);signCtx.moveTo(p.x,p.y);e.preventDefault();});
   c.addEventListener('pointermove',e=>{if(!signing)return;const p=gp(e);signCtx.lineTo(p.x,p.y);signCtx.stroke();e.preventDefault();});
-  c.addEventListener('pointerup',e=>{signing=false;});
-  c.addEventListener('pointercancel',e=>{signing=false;});
+  c.addEventListener('pointerup',()=>{signing=false;});
+  c.addEventListener('pointercancel',()=>{signing=false;});
 }
 function clearSign(){const c=document.getElementById('signCanvas');signCtx.clearRect(0,0,c.width,c.height);}
 function saveSign(){
@@ -509,18 +529,50 @@ function saveAsMaterial(){
   document.getElementById('mat-title-input').value='';
   document.getElementById('modal-mat').classList.add('open');
 }
-function confirmSaveMat(){
+async function confirmSaveMat(){
   const title=document.getElementById('mat-title-input').value.trim();
   const content=document.getElementById('rec-text').value.trim();
   if(!title){toast('⚠️ 請輸入教材名稱');return;}
-  if(!content){toast('⚠️ 教材內容不能為空');return;}
+  const hasPhoto=photos.some(Boolean);
+  if(!content&&!hasPhoto){toast('⚠️ 請輸入內容或加入圖片');return;}
   const matId=Date.now();
   db.materials.push({id:matId,title,content,photos:[...photos],date:new Date().toLocaleDateString('zh-TW')});
   photos=['','','','','',''];renderPhotoGrid();
   saveDB();closeModal('modal-mat');
   document.getElementById('rec-text').value='';
-  toast('✅ 教材「'+title+'」已儲存');
+  toast('✅ 教材「'+title+'」已儲存！正在自動生成題目...');
   renderMaterials();
+  // 自動觸發AI出題
+  if(content && content.trim().length>20){
+    await autoGenerateQuiz(content, title);
+  }
+}
+
+async function autoGenerateQuiz(content, matTitle){
+  const GEMINI_KEY='AIzaSyDRSrBb-Kn07xL6GoOrD0ybbpsWoUyye1A';
+  const prompt=`請根據以下「${matTitle}」教材內容，生成10題繁體中文基礎單選題。每題4個選項（A、B、C、D），標示正確答案和簡短解析。請只回傳JSON格式，不要其他說明文字。格式：[{"q":"題目","a":"選項A","b":"選項B","c":"選項C","d":"選項D","ans":"A","exp":"解析說明"}]\n\n教材內容：\n${content.slice(0,3000)}`;
+  showSyncStatus('🤖 AI正在生成題目...');
+  try{
+    const resp=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})});
+    const data=await resp.json();
+    const raw=data.candidates?.[0]?.content?.parts?.[0]?.text||'[]';
+    let clean=raw.replace(/\`\`\`json|\`\`\`/g,'').trim();
+    const start=clean.indexOf('['),end=clean.lastIndexOf(']');
+    if(start>=0&&end>start)clean=clean.slice(start,end+1);
+    const qs=JSON.parse(clean);
+    if(!Array.isArray(qs)||qs.length===0)throw new Error('沒有題目');
+    // 清空舊題目，加入新題目
+    db.questions=[];
+    qs.forEach(q=>{db.questions.push({id:Date.now()+Math.random(),q:q.q,a:q.a,b:q.b,c:q.c||'',d:q.d||'',ans:q.ans,exp:q.exp||''});});
+    db.examOpen=true; // 自動開放考試
+    saveDB();
+    if(isTeacher){renderQuizEditor();renderExamOpenBadge();}
+    showSyncStatus('✅ 已自動生成'+qs.length+'題！考試已開放',3000);
+    toast('🎉 AI已自動生成'+qs.length+'題，考試已開放！');
+  }catch(e){
+    showSyncStatus('⚠️ AI出題失敗',2000);
+    toast('⚠️ 自動出題失敗，請手動按「AI生成」');
+  }
 }
 function renderMaterials(){
   const l=document.getElementById('mat-list');
