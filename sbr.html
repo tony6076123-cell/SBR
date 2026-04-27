@@ -523,15 +523,12 @@ function initCanvas(){
 function clearSign(){const c=document.getElementById('signCanvas');signCtx.clearRect(0,0,c.width,c.height);}
 function saveSign(){
   if(!currentUser){toast('⚠️ 請先選擇姓名');return;}
-  const c=document.getElementById('signCanvas');
-  if(!signCtx.getImageData(0,0,c.width,c.height).data.some(v=>v!==0)){toast('⚠️ 請先簽名');return;}
+  const canvas=document.getElementById('signCanvas');
+  if(!signCtx.getImageData(0,0,canvas.width,canvas.height).data.some(v=>v!==0)){toast('⚠️ 請先簽名');return;}
   const today=new Date().toLocaleDateString('zh-TW');
   if(!db.signs[today])db.signs[today]={};
-  db.signs[today][currentUser]={site:currentSite,time:new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'})};
-  // 把簽名圖轉成base64存到Firebase
-  const c=document.getElementById('signCanvas');
-  const imgData=c.toDataURL('image/png');
-  db.signs[key].img=imgData;
+  const imgData=canvas.toDataURL('image/png');
+  db.signs[today][currentUser]={site:currentSite,time:new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'}),img:imgData};
   saveDB();clearSign();
   showSyncStatus('✅ 簽到已同步到雲端',2000);
   toast('✅ 簽到成功！電腦可即時查看');
