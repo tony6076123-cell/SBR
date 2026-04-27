@@ -528,7 +528,14 @@ function saveSign(){
   const today=new Date().toLocaleDateString('zh-TW');
   if(!db.signs[today])db.signs[today]={};
   db.signs[today][currentUser]={site:currentSite,time:new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'})};
-  saveDB();clearSign();toast('✅ 簽到成功！');renderSignList();renderHome();
+  // 把簽名圖轉成base64存到Firebase
+  const c=document.getElementById('signCanvas');
+  const imgData=c.toDataURL('image/png');
+  db.signs[key].img=imgData;
+  saveDB();clearSign();
+  showSyncStatus('✅ 簽到已同步到雲端',2000);
+  toast('✅ 簽到成功！電腦可即時查看');
+  renderSignList();renderHome();
 }
 function renderSignList(){
   const today=new Date().toLocaleDateString('zh-TW'),rec=db.signs[today]||{},list=Object.entries(rec);
@@ -566,8 +573,10 @@ async function autoGenerateQuiz(content, matTitle){
   const prompt=`請根據以下「${matTitle}」教材內容，生成10題繁體中文基礎單選題。每題4個選項（A、B、C、D），標示正確答案和簡短解析。請只回傳JSON格式，不要其他說明文字。格式：[{"q":"題目","a":"選項A","b":"選項B","c":"選項C","d":"選項D","ans":"A","exp":"解析說明"}]\n\n教材內容：\n${content.slice(0,3000)}`;
   showSyncStatus('🤖 AI正在生成題目...');
   try{
-    const resp=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})});
+    const resp=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.7,maxOutputTokens:4000}})});
+    if(!resp.ok)throw new Error('API回應錯誤:'+resp.status);
     const data=await resp.json();
+    if(data.error)throw new Error(data.error.message);
     const raw=data.candidates?.[0]?.content?.parts?.[0]?.text||'[]';
     let clean=raw.replace(/\`\`\`json|\`\`\`/g,'').trim();
     const start=clean.indexOf('['),end=clean.lastIndexOf(']');
