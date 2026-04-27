@@ -379,16 +379,22 @@ canvas#signCanvas{display:block;width:100%;height:200px;touch-action:none;cursor
   </div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script>
-// Firebase 本地模式（測試用）
-const SBR_DOC={
-  get:async()=>({exists:false,data:()=>null}),
-  set:async()=>{},
-  onSnapshot:(cb,err)=>{}
-};
+// Firebase 真實連線
+const firebaseConfig={apiKey:"AIzaSyCoeBRe_i2njEyDI0FPv9HXEGNxBb6eqg8",authDomain:"yongkank-63703.firebaseapp.com",projectId:"yongkank-63703",storageBucket:"yongkank-63703.firebasestorage.app",messagingSenderId:"353225693174",appId:"1:353225693174:web:3d70fafa51e3ab8c0219d7"};
+if(!firebase.apps.length)firebase.initializeApp(firebaseConfig);
+const fdb=firebase.firestore();
+const SBR_DOC=fdb.collection('sbr_training').doc('main_data');
 
 async function loadFromCloud(){
-  showSyncStatus('📱 本地模式',2000);
+  try{
+    showSyncStatus('☁️ 連線中...');
+    const snap=await SBR_DOC.get();
+    if(snap.exists){const d=snap.data();if(d){db={...initDB(),...d};fixDB();}}
+    showSyncStatus('✅ 雲端已同步',2000);
+  }catch(e){showSyncStatus('📱 本地模式',2000);}
   renderAll();
 }
 function fixDB(){if(!db.signs)db.signs={};if(!db.scores)db.scores=[];if(!db.materials)db.materials=[];if(!db.questions)db.questions=[];if(db.examOpen===undefined)db.examOpen=false;}
@@ -412,7 +418,25 @@ async function saveDB(){
   },1500);
 }
 
-function startRealtimeSync(){}
+function startRealtimeSync(){
+  if(!SBR_DOC||!SBR_DOC.onSnapshot)return;
+  SBR_DOC.onSnapshot(snap=>{
+    if(!snap.exists||snap.metadata.hasPendingWrites)return;
+    const d=snap.data();if(!d)return;
+    // 同步逐字稿（手機錄音→電腦即時顯示）
+    if(d.liveTranscript&&!isRecording){
+      const ta=document.getElementById('rec-text');
+      if(ta)ta.value=d.liveTranscript;
+    }
+    const cloudTs=d._ts||0,localTs=db._ts||0;
+    if(cloudTs>localTs){
+      db={...initDB(),...d};fixDB();
+      renderAll();
+      if(isTeacher){renderQuizEditor();renderTeacherSigns();renderTeacherScores();renderExamOpenBadge();}
+      showSyncStatus('🔄 已同步',2000);
+    }
+  },err=>console.warn('同步錯誤',err));
+}
 
 let syncTimer;
 function showSyncStatus(msg,hideAfter=0){
@@ -435,6 +459,11 @@ window.addEventListener('load',()=>{
   initCanvas();
   const params=new URLSearchParams(window.location.search);
   if(params.get('exam')==='1')setTimeout(()=>goPage('exam'),1400);
+  if(params.get('mode')==='student'){
+    // 學員模式：隱藏成績和首頁nav，只留簽到教材考試
+    document.getElementById('nav-score').style.display='none';
+    document.getElementById('nav-home').style.display='none';
+  }
   renderAll();
   setTimeout(()=>document.getElementById('splash').classList.add('out'),1200);
   // 雲端同步在背景執行，不阻擋畫面
@@ -626,7 +655,15 @@ function showResult(){
   document.getElementById('exam-doing').style.display='none';document.getElementById('exam-result').style.display='block';
   const el=document.getElementById('result-score');el.textContent=score+'分';el.className='quiz-score '+(score>=60?'pass':'fail');
   document.getElementById('result-detail').textContent=`答對 ${correct} / ${examQ.length} 題`;document.getElementById('review-list').style.display='none';
-  if(currentUser){db.scores.push({name:currentUser,site:currentSite,score,correct,total:examQ.length,date:new Date().toLocaleDateString('zh-TW'),time:new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'})});saveDB();renderHome();}
+  if(currentUser){
+    db.scores.push({name:currentUser,site:currentSite,score,correct,total:examQ.length,date:new Date().toLocaleDateString('zh-TW'),time:new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'})});
+    saveDB();
+    // 立即顯示成績給學員
+    const grade=score>=90?'🏆 優秀':score>=80?'🥈 良好':score>=70?'✅ 及格':'📚 需加強';
+    const msg=`${grade}\n\n你答對 ${correct}/${examQ.length} 題\n得分：${score} 分`;
+    alert(msg);
+    goPage('score');
+  }
 }
 function reviewAnswers(){
   const rev=document.getElementById('review-list');rev.style.display='block';
@@ -676,8 +713,9 @@ function generateQR(){
   const url=getExamURL(),area=document.getElementById('qr-area'),div=document.getElementById('qr-code-div');
   div.innerHTML='';area.style.display='block';document.getElementById('qr-url-display').textContent=url;
   try{
-    new QRCode(div,{text:url,width:200,height:200,colorDark:'#0C3A6B',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});
-    toast('✅ QR 碼已產生，學員掃描即可進入考試');
+    const studentUrl=url+'&mode=student';
+    new QRCode(div,{text:studentUrl,width:200,height:200,colorDark:'#0C3A6B',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});
+    toast('✅ QR 碼已產生，學員掃描後只看到簽到、教材、考試');
   }catch(e){div.innerHTML=`<div style="padding:20px;text-align:center;font-size:13px;color:var(--text2)">網址：<br><a href="${url}" style="color:var(--blue);word-break:break-all">${url}</a></div>`;}
 }
 function saveQRImage(){
@@ -797,15 +835,42 @@ function removePhoto(i){photos[i]='';renderPhotoGrid();}
 function clearAll(){document.getElementById('rec-text').value='';photos=['','','','','',''];renderPhotoGrid();}
 
 async function toggleRecord(){
-  if(isRecording){if(mediaRec)mediaRec.stop();isRecording=false;document.getElementById('rec-btn').textContent='🎙️ 按住開始錄音';document.getElementById('rec-btn').classList.remove('recording');document.getElementById('rec-indicator').classList.remove('show');}
+  if(isRecording){
+    if(mediaRec){try{mediaRec.stop();}catch(e){}}
+    isRecording=false;
+    document.getElementById('rec-btn').textContent='🎙️ 開始錄音（即時同步）';
+    document.getElementById('rec-btn').classList.remove('recording');
+    document.getElementById('rec-indicator').classList.remove('show');
+    toast('✅ 錄音完成，逐字稿已同步到電腦！');
+  }
   else{
-    try{if(!navigator.mediaDevices){toast('⚠️ 此瀏覽器不支援錄音');return;}
-      const stream=await navigator.mediaDevices.getUserMedia({audio:true});const chunks=[];
-      mediaRec=new MediaRecorder(stream);mediaRec.ondataavailable=e=>chunks.push(e.data);
-      mediaRec.onstop=()=>{stream.getTracks().forEach(t=>t.stop());toast('✅ 錄音完成！');};
-      mediaRec.start();isRecording=true;document.getElementById('rec-btn').textContent='⏹ 點此停止錄音';document.getElementById('rec-btn').classList.add('recording');document.getElementById('rec-indicator').classList.add('show');
-      if('webkitSpeechRecognition' in window||'SpeechRecognition' in window){const SR=window.SpeechRecognition||window.webkitSpeechRecognition,sr=new SR();sr.lang='zh-TW';sr.continuous=true;sr.interimResults=true;sr.onresult=e=>{let f='';for(let i=e.resultIndex;i<e.results.length;i++){if(e.results[i].isFinal)f+=e.results[i][0].transcript;}if(f)document.getElementById('rec-text').value+=f;};sr.start();mediaRec.onstop=()=>{sr.stop();stream.getTracks().forEach(t=>t.stop());toast('✅ 錄音完成！');};}
-    }catch(e){toast('⚠️ 無法存取麥克風：'+e.message);}
+    try{
+      if(!('webkitSpeechRecognition' in window||'SpeechRecognition' in window)){toast('⚠️ 請用Chrome瀏覽器');return;}
+      const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+      mediaRec=new SR();
+      mediaRec.lang='zh-TW';mediaRec.continuous=true;mediaRec.interimResults=true;
+      const ta=document.getElementById('rec-text');
+      let finalText=ta.value;
+      mediaRec.onresult=async(e)=>{
+        let interim='';
+        for(let i=e.resultIndex;i<e.results.length;i++){
+          if(e.results[i].isFinal)finalText+=e.results[i][0].transcript;
+          else interim+=e.results[i][0].transcript;
+        }
+        ta.value=finalText+interim;
+        // 即時同步到Firebase（電腦即時看到逐字稿）
+        if(SBR_DOC&&SBR_DOC.update){
+          try{await SBR_DOC.update({liveTranscript:ta.value,liveTranscriptTs:Date.now()});}catch(err){}
+        }
+      };
+      mediaRec.onerror=(e)=>{if(e.error!=='no-speech'){toast('語音辨識錯誤：'+e.error);isRecording=false;}};
+      mediaRec.start();
+      isRecording=true;
+      document.getElementById('rec-btn').textContent='⏹ 點此停止錄音';
+      document.getElementById('rec-btn').classList.add('recording');
+      document.getElementById('rec-indicator').classList.add('show');
+      toast('🎙️ 開始錄音，電腦即時同步逐字稿！');
+    }catch(e){toast('⚠️ 錄音失敗：'+e.message);}
   }
 }
 
