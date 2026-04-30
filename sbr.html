@@ -4,289 +4,122 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>SBR 技術長訓練系統</title>
-<link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0C3A6B">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{font-family:'Noto Sans TC',sans-serif;background:#0C3A6B;min-height:100vh;overscroll-behavior:none;}
-
-/* ── 頁面切換 ── */
 .page{display:none;min-height:100vh;flex-direction:column;}
 .page.active{display:flex;}
 
-/* ══════════════════ 登入頁 ══════════════════ */
-#page-login{
-  background:linear-gradient(160deg,#0C3A6B 0%,#185FA5 60%,#1a7abf 100%);
-  align-items:center;justify-content:center;padding:24px;
-}
-.login-logo{text-align:center;margin-bottom:40px;}
-.login-logo .badge{
-  width:80px;height:80px;border-radius:24px;
-  background:rgba(255,255,255,0.15);
-  display:flex;align-items:center;justify-content:center;
-  font-size:40px;margin:0 auto 16px;
-  border:2px solid rgba(255,255,255,0.25);
-}
+#page-login{background:linear-gradient(160deg,#0C3A6B 0%,#185FA5 60%,#1a7abf 100%);align-items:center;justify-content:center;padding:24px;}
+.login-logo{text-align:center;margin-bottom:32px;}
+.login-logo .badge{width:80px;height:80px;border-radius:24px;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:40px;margin:0 auto 16px;border:2px solid rgba(255,255,255,0.25);}
 .login-logo h1{color:#fff;font-size:22px;font-weight:900;letter-spacing:2px;}
 .login-logo p{color:rgba(255,255,255,0.7);font-size:13px;margin-top:6px;}
-.login-card{
-  background:#fff;border-radius:24px;padding:28px 24px;
-  width:100%;max-width:360px;
-}
-.login-card h2{font-size:16px;font-weight:700;color:#0C3A6B;margin-bottom:20px;text-align:center;}
-.name-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
-.name-btn{
-  padding:14px 8px;border-radius:14px;border:2px solid #e8edf5;
-  background:#f8faff;font-size:14px;font-weight:600;color:#185FA5;
-  cursor:pointer;transition:all .15s;text-align:center;
-}
-.name-btn:active,.name-btn.selected{background:#185FA5;color:#fff;border-color:#185FA5;}
+.login-card{background:#fff;border-radius:24px;padding:28px 24px;width:100%;max-width:360px;}
+.login-card h2{font-size:15px;font-weight:700;color:#0C3A6B;margin-bottom:16px;text-align:center;}
+.qr-hint{margin-bottom:14px;padding:12px 14px;background:#E6F1FB;border-radius:14px;font-size:13px;color:#0C3A6B;font-weight:700;text-align:center;border:1.5px solid #b5d4f4;display:none;}
+.name-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;max-height:300px;overflow-y:auto;}
+.name-btn{padding:12px 8px;border-radius:14px;border:2px solid #e8edf5;background:#f8faff;font-size:14px;font-weight:600;color:#185FA5;cursor:pointer;text-align:center;}
+.name-btn:active{background:#185FA5;color:#fff;border-color:#185FA5;}
 .login-sep{text-align:center;color:#aaa;font-size:12px;margin:12px 0;}
-.tech-btn{
-  width:100%;padding:14px;border-radius:14px;
-  background:#0C3A6B;color:#fff;font-size:15px;font-weight:700;
-  border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;
-}
-.tech-btn:active{opacity:.85;}
+.tech-btn{width:100%;padding:14px;border-radius:14px;background:#0C3A6B;color:#fff;font-size:15px;font-weight:700;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;}
 
-/* ══════════════════ 主畫面 ══════════════════ */
 #page-home{background:#f0f4f8;}
-.app-header{
-  background:linear-gradient(135deg,#0C3A6B,#185FA5);
-  padding:20px 20px 28px;
-  border-radius:0 0 28px 28px;
-}
+.app-header{background:linear-gradient(135deg,#0C3A6B,#185FA5);padding:20px 20px 28px;border-radius:0 0 28px 28px;}
 .app-header .top-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
 .app-header .app-title{color:#fff;font-size:17px;font-weight:900;letter-spacing:1px;}
-.logout-btn{
-  background:rgba(255,255,255,0.15);color:#fff;
-  border:none;border-radius:20px;padding:6px 14px;font-size:12px;cursor:pointer;
-}
-.user-chip{
-  display:inline-flex;align-items:center;gap:8px;
-  background:rgba(255,255,255,0.15);border-radius:20px;
-  padding:8px 14px;
-}
-.user-chip .avatar{
-  width:32px;height:32px;border-radius:50%;
-  background:rgba(255,255,255,0.25);
-  display:flex;align-items:center;justify-content:center;
-  font-size:14px;font-weight:700;color:#fff;
-}
+.logout-btn{background:rgba(255,255,255,0.15);color:#fff;border:none;border-radius:20px;padding:6px 14px;font-size:12px;cursor:pointer;}
+.user-chip{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.15);border-radius:20px;padding:8px 14px;}
+.user-chip .avatar{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;}
 .user-chip .info .name{color:#fff;font-size:14px;font-weight:700;}
 .user-chip .info .role{color:rgba(255,255,255,.7);font-size:11px;}
-.status-dot{width:8px;height:8px;border-radius:50%;background:#4ade80;margin-left:4px;}
-
-.menu-grid{
-  display:grid;grid-template-columns:1fr 1fr;gap:14px;
-  padding:20px 16px;
-}
-.menu-card{
-  background:#fff;border-radius:20px;padding:20px 14px 16px;
-  text-align:center;border:none;cursor:pointer;
-  box-shadow:0 2px 12px rgba(0,0,0,0.06);
-  transition:transform .12s,box-shadow .12s;
-  position:relative;overflow:hidden;
-}
-.menu-card:active{transform:scale(0.95);box-shadow:0 1px 6px rgba(0,0,0,0.08);}
-.menu-card .card-icon{
-  width:56px;height:56px;border-radius:16px;
-  display:flex;align-items:center;justify-content:center;
-  font-size:28px;margin:0 auto 12px;
-}
+.menu-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:20px 16px;}
+.menu-card{background:#fff;border-radius:20px;padding:20px 14px 16px;text-align:center;border:none;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,0.06);transition:transform .12s;}
+.menu-card:active{transform:scale(0.95);}
+.menu-card .card-icon{width:56px;height:56px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 12px;}
 .menu-card .card-label{font-size:15px;font-weight:700;color:#1a2340;}
 .menu-card .card-desc{font-size:11px;color:#8a95a8;margin-top:4px;}
 .menu-card.wide{grid-column:1/-1;}
-.icon-blue{background:#E6F1FB;}
-.icon-green{background:#EAF3DE;}
-.icon-amber{background:#FAEEDA;}
 .icon-teal{background:#E1F5EE;}
 .icon-purple{background:#EEEDFE;}
-.icon-red{background:#FCEBEB;}
 
-/* ══════════════════ 功能頁共用 header ══════════════════ */
-.sub-header{
-  background:linear-gradient(135deg,#0C3A6B,#185FA5);
-  padding:16px 20px;display:flex;align-items:center;gap:12px;
-  border-radius:0 0 20px 20px;
-}
-.back-btn{
-  width:36px;height:36px;border-radius:50%;
-  background:rgba(255,255,255,0.15);border:none;
-  color:#fff;font-size:18px;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;flex-shrink:0;
-}
+.sub-header{background:linear-gradient(135deg,#0C3A6B,#185FA5);padding:16px 20px;display:flex;align-items:center;gap:12px;border-radius:0 0 20px 20px;}
+.back-btn{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .sub-header h2{color:#fff;font-size:17px;font-weight:700;}
 .page-body{flex:1;padding:16px;overflow-y:auto;}
 
-/* ══════════════════ 簽到頁 ══════════════════ */
-#page-sign{}
-.sign-card{background:#fff;border-radius:20px;padding:20px;margin-bottom:14px;box-shadow:0 2px 12px rgba(0,0,0,0.06);}
-.sign-card h3{font-size:14px;font-weight:700;color:#185FA5;margin-bottom:14px;}
-canvas#sig-pad{
-  width:100%;height:160px;border-radius:12px;
-  border:2px dashed #d0d9e8;background:#f8faff;touch-action:none;
-  display:block;
-}
+.card{background:#fff;border-radius:20px;padding:20px;margin-bottom:14px;box-shadow:0 2px 12px rgba(0,0,0,0.06);}
+.card h3{font-size:14px;font-weight:700;color:#185FA5;margin-bottom:14px;}
 .btn-row{display:flex;gap:10px;margin-top:12px;}
-.btn-primary{
-  flex:1;padding:13px;border-radius:12px;
-  background:#185FA5;color:#fff;font-size:14px;font-weight:700;
-  border:none;cursor:pointer;
-}
+.btn-primary{flex:1;padding:13px;border-radius:12px;background:#185FA5;color:#fff;font-size:14px;font-weight:700;border:none;cursor:pointer;}
 .btn-primary:active{opacity:.85;}
-.btn-secondary{
-  flex:1;padding:13px;border-radius:12px;
-  background:#f0f4f8;color:#185FA5;font-size:14px;font-weight:600;
-  border:none;cursor:pointer;
-}
-.sign-list{display:flex;flex-direction:column;gap:8px;}
-.sign-item{
-  display:flex;align-items:center;gap:12px;
-  background:#f8faff;border-radius:12px;padding:12px 14px;
-}
-.sign-item .s-name{font-size:14px;font-weight:600;color:#1a2340;flex:1;}
-.sign-item .s-time{font-size:11px;color:#8a95a8;}
-.sign-badge{
-  padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;
-  background:#EAF3DE;color:#3B6D11;
-}
+.btn-primary:disabled{background:#bbb;cursor:not-allowed;}
+.btn-secondary{flex:1;padding:13px;border-radius:12px;background:#f0f4f8;color:#185FA5;font-size:14px;font-weight:600;border:none;cursor:pointer;}
 
-/* ══════════════════ 教材頁 ══════════════════ */
-.material-card{
-  background:#fff;border-radius:20px;padding:20px;
-  margin-bottom:14px;box-shadow:0 2px 12px rgba(0,0,0,0.06);
-}
-.material-card h3{font-size:14px;font-weight:700;color:#185FA5;margin-bottom:12px;}
-textarea.material-input{
-  width:100%;min-height:140px;border:1.5px solid #d0d9e8;
-  border-radius:12px;padding:12px;font-size:14px;
-  font-family:'Noto Sans TC',sans-serif;resize:vertical;
-  background:#f8faff;color:#1a2340;
-}
-textarea.material-input:focus{outline:none;border-color:#185FA5;}
-.material-display{
-  background:#f8faff;border-radius:12px;padding:14px;
-  font-size:14px;color:#1a2340;line-height:1.8;white-space:pre-wrap;
-  min-height:80px;
-}
-.img-preview{max-width:100%;border-radius:12px;margin-top:10px;}
-
-/* ══════════════════ 考試頁 ══════════════════ */
-.quiz-card{background:#fff;border-radius:20px;padding:20px;margin-bottom:14px;box-shadow:0 2px 12px rgba(0,0,0,0.06);}
 .q-progress{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
 .q-num{font-size:13px;color:#8a95a8;}
 .q-bar{flex:1;height:6px;background:#e8edf5;border-radius:3px;}
 .q-bar-fill{height:100%;background:#185FA5;border-radius:3px;transition:width .3s;}
 .q-text{font-size:16px;font-weight:700;color:#1a2340;margin-bottom:16px;line-height:1.6;}
 .q-options{display:flex;flex-direction:column;gap:10px;}
-.q-opt{
-  padding:14px 16px;border-radius:14px;border:2px solid #e8edf5;
-  background:#f8faff;font-size:14px;color:#1a2340;cursor:pointer;
-  transition:all .12s;text-align:left;
-}
-.q-opt:active{transform:scale(0.98);}
-.q-opt.selected{border-color:#185FA5;background:#E6F1FB;color:#0C3A6B;}
+.q-opt{padding:14px 16px;border-radius:14px;border:2px solid #e8edf5;background:#f8faff;font-size:14px;color:#1a2340;cursor:pointer;text-align:left;width:100%;}
 .q-opt.correct{border-color:#3B6D11;background:#EAF3DE;color:#3B6D11;}
 .q-opt.wrong{border-color:#A32D2D;background:#FCEBEB;color:#A32D2D;}
-.answer-hint{
-  margin-top:12px;padding:12px;border-radius:12px;
-  background:#FAEEDA;font-size:13px;color:#633806;display:none;
-}
-.score-card{
-  background:linear-gradient(135deg,#0C3A6B,#185FA5);
-  border-radius:20px;padding:32px 20px;text-align:center;
-  margin-bottom:14px;
-}
+.answer-hint{margin-top:12px;padding:12px;border-radius:12px;background:#FAEEDA;font-size:13px;color:#633806;display:none;line-height:1.6;}
+.score-card{background:linear-gradient(135deg,#0C3A6B,#185FA5);border-radius:20px;padding:32px 20px;text-align:center;margin-bottom:14px;}
 .score-num{font-size:64px;font-weight:900;color:#fff;}
 .score-label{font-size:14px;color:rgba(255,255,255,.7);margin-top:4px;}
 
-/* ══════════════════ 語音備課 ══════════════════ */
-.voice-status{
-  text-align:center;padding:32px 20px;
-  background:#fff;border-radius:20px;margin-bottom:14px;
-  box-shadow:0 2px 12px rgba(0,0,0,0.06);
-}
-.mic-btn{
-  width:80px;height:80px;border-radius:50%;
-  background:#185FA5;border:none;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  font-size:36px;margin:0 auto 16px;
-  box-shadow:0 4px 20px rgba(24,95,165,0.35);
-  transition:all .12s;
-}
+.mic-btn{width:80px;height:80px;border-radius:50%;background:#185FA5;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 16px;box-shadow:0 4px 20px rgba(24,95,165,0.35);}
 .mic-btn.recording{background:#E24B4A;animation:pulse 1s infinite;}
-.mic-btn:active{transform:scale(0.92);}
 @keyframes pulse{0%,100%{box-shadow:0 4px 20px rgba(226,75,74,0.35);}50%{box-shadow:0 4px 30px rgba(226,75,74,0.6);}}
-.transcript-box{
-  background:#fff;border-radius:20px;padding:20px;
-  box-shadow:0 2px 12px rgba(0,0,0,0.06);
-}
-.transcript-text{
-  min-height:120px;font-size:14px;color:#1a2340;
-  line-height:1.8;white-space:pre-wrap;
-}
 
-/* ══════════════════ 成績統計 ══════════════════ */
 .stats-summary{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
-.stat-box{
-  background:#fff;border-radius:16px;padding:16px;
-  text-align:center;box-shadow:0 2px 12px rgba(0,0,0,0.06);
-}
+.stat-box{background:#fff;border-radius:16px;padding:16px;text-align:center;box-shadow:0 2px 12px rgba(0,0,0,0.06);}
 .stat-box .stat-num{font-size:28px;font-weight:900;color:#185FA5;}
 .stat-box .stat-label{font-size:11px;color:#8a95a8;margin-top:4px;}
-.result-list{display:flex;flex-direction:column;gap:8px;}
-.result-item{
-  background:#fff;border-radius:14px;padding:14px 16px;
-  display:flex;align-items:center;gap:12px;
-  box-shadow:0 1px 8px rgba(0,0,0,0.05);
-}
-.result-item .r-name{font-size:14px;font-weight:700;color:#1a2340;flex:1;}
-.result-item .r-score{font-size:18px;font-weight:900;color:#185FA5;}
-.result-item .r-grade{
-  font-size:11px;padding:4px 10px;border-radius:20px;font-weight:700;
-}
+.result-item{background:#fff;border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 8px rgba(0,0,0,0.05);margin-bottom:8px;}
+.r-name{font-size:14px;font-weight:700;color:#1a2340;flex:1;}
+.r-score{font-size:18px;font-weight:900;color:#185FA5;}
+.r-grade{font-size:11px;padding:4px 10px;border-radius:20px;font-weight:700;}
 .grade-pass{background:#EAF3DE;color:#3B6D11;}
 .grade-fail{background:#FCEBEB;color:#A32D2D;}
 
-/* ══════════════════ 密碼對話框 ══════════════════ */
-.modal-overlay{
-  position:fixed;inset:0;background:rgba(0,0,0,0.5);
-  display:none;align-items:center;justify-content:center;
-  z-index:1000;padding:24px;
-}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:none;align-items:center;justify-content:center;z-index:1000;padding:24px;}
 .modal-overlay.open{display:flex;}
-.modal-box{
-  background:#fff;border-radius:24px;padding:28px 24px;
-  width:100%;max-width:320px;
-}
+.modal-box{background:#fff;border-radius:24px;padding:28px 24px;width:100%;max-width:320px;}
 .modal-box h3{font-size:16px;font-weight:700;color:#0C3A6B;margin-bottom:16px;text-align:center;}
-.modal-input{
-  width:100%;padding:13px;border-radius:12px;border:1.5px solid #d0d9e8;
-  font-size:16px;text-align:center;margin-bottom:14px;
-  font-family:'Noto Sans TC',sans-serif;
-}
+.modal-input{width:100%;padding:13px;border-radius:12px;border:1.5px solid #d0d9e8;font-size:16px;text-align:center;margin-bottom:14px;font-family:'Noto Sans TC',sans-serif;}
 .modal-input:focus{outline:none;border-color:#185FA5;}
 .modal-btns{display:flex;gap:10px;}
 
-/* ══════════════════ Toast ══════════════════ */
-#toast{
-  position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
-  background:#1a2340;color:#fff;padding:10px 20px;border-radius:20px;
-  font-size:13px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:2000;
-  white-space:nowrap;
-}
+#toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1a2340;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:2000;white-space:nowrap;}
 #toast.show{opacity:1;}
+
+.img-slot{background:#f8faff;border-radius:14px;border:2px dashed #d0d9e8;min-height:110px;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;position:relative;}
+.img-slot img{width:100%;height:110px;object-fit:cover;display:none;}
+.slot-label{font-size:12px;font-weight:700;color:#185FA5;margin-bottom:6px;}
+textarea{width:100%;border:1.5px solid #d0d9e8;border-radius:12px;padding:10px;font-size:13px;font-family:'Noto Sans TC',sans-serif;resize:vertical;background:#f8faff;color:#1a2340;}
+textarea:focus{outline:none;border-color:#185FA5;}
+
+/* 教材頁（學員閱讀） */
+.material-text{background:#f8faff;border-radius:14px;padding:16px;font-size:14px;color:#1a2340;line-height:1.9;white-space:pre-wrap;min-height:80px;}
+.material-step{background:#fff;border-radius:16px;border:1px solid #e8edf5;padding:14px;margin-bottom:10px;}
+.material-step-title{font-size:13px;font-weight:700;color:#185FA5;margin-bottom:8px;}
+.material-step img{width:100%;border-radius:10px;margin-bottom:8px;display:none;}
+.material-step p{font-size:13px;color:#1a2340;line-height:1.7;}
+.start-exam-btn{width:100%;padding:16px;border-radius:16px;background:linear-gradient(135deg,#0C3A6B,#185FA5);color:#fff;font-size:16px;font-weight:900;border:none;cursor:pointer;margin-top:4px;letter-spacing:1px;}
+.start-exam-btn:active{opacity:.85;}
 </style>
 </head>
 <body>
 
-<!-- ════════════ 登入頁 ════════════ -->
+<!-- 登入頁 -->
 <div id="page-login" class="page active">
   <div class="login-logo">
     <div class="badge">🔧</div>
@@ -294,14 +127,15 @@ textarea.material-input:focus{outline:none;border-color:#185FA5;}
     <p>永康廠 · 歸仁廠</p>
   </div>
   <div class="login-card">
+    <div class="qr-hint" id="qr-hint">📝 請選擇姓名後開始考試</div>
     <h2>請選擇您的姓名</h2>
     <div class="name-grid" id="name-grid"></div>
     <div class="login-sep">── 或 ──</div>
-    <button class="tech-btn" onclick="openTechLogin()">🔑 技術長 / 管理員登入</button>
+    <button class="tech-btn" onclick="openTechModal()">🔑 技術長 / 管理員登入</button>
   </div>
 </div>
 
-<!-- ════════════ 主選單 ════════════ -->
+<!-- 主選單（技術長/管理員） -->
 <div id="page-home" class="page">
   <div class="app-header">
     <div class="top-row">
@@ -312,157 +146,113 @@ textarea.material-input:focus{outline:none;border-color:#185FA5;}
       <div class="avatar" id="home-avatar">?</div>
       <div class="info">
         <div class="name" id="home-name">未登入</div>
-        <div class="role" id="home-role">學員</div>
+        <div class="role" id="home-role">技術長</div>
       </div>
-      <div class="status-dot"></div>
     </div>
   </div>
   <div class="menu-grid" id="menu-grid"></div>
 </div>
 
-<!-- ════════════ 手寫簽到 ════════════ -->
-<div id="page-sign" class="page">
-  <div class="sub-header">
-    <button class="back-btn" onclick="goHome()">←</button>
-    <h2>✍️ 手寫簽到</h2>
-  </div>
-  <div class="page-body">
-    <div class="sign-card">
-      <h3>請在下方簽名</h3>
-      <canvas id="sig-pad"></canvas>
-      <div class="btn-row">
-        <button class="btn-secondary" onclick="clearSig()">清除</button>
-        <button class="btn-primary" onclick="submitSig()">確認簽到</button>
-      </div>
-    </div>
-    <div class="sign-card" id="sign-list-wrap" style="display:none;">
-      <h3>今日簽到紀錄 <span id="sign-count" style="font-weight:400;color:#8a95a8;font-size:12px;"></span></h3>
-      <div class="sign-list" id="sign-list"></div>
-    </div>
-  </div>
-</div>
-
-<!-- ════════════ 學習教材 ════════════ -->
-<div id="page-material" class="page">
-  <div class="sub-header">
-    <button class="back-btn" onclick="goHome()">←</button>
-    <h2>📖 學習教材</h2>
-  </div>
-  <div class="page-body">
-    <!-- 技術長輸入區 -->
-    <div class="material-card" id="material-tech-input" style="display:none;">
-      <h3>建立課程教材</h3>
-      <input type="text" id="material-title" placeholder="課程標題（例：SBR工法第一講）"
-        style="width:100%;padding:12px;border-radius:12px;border:1.5px solid #d0d9e8;font-size:15px;font-weight:700;margin-bottom:10px;font-family:'Noto Sans TC',sans-serif;">
-      <textarea class="material-input" id="material-text" placeholder="輸入課程內容..."></textarea>
-      <input type="file" id="material-img" accept="image/*" style="display:none;" onchange="previewImg(this)">
-      <img id="material-img-preview" class="img-preview" style="display:none;">
-      <div class="btn-row" style="margin-top:10px;">
-        <button class="btn-secondary" onclick="document.getElementById('material-img').click()">📷 圖片</button>
-        <button class="btn-primary" onclick="saveMaterial()">💾 儲存 + 產生QR碼</button>
-      </div>
-    </div>
-    <!-- QR 碼顯示區（儲存後出現）-->
-    <div class="material-card" id="material-qr-wrap" style="display:none;text-align:center;">
-      <h3 id="material-qr-title" style="margin-bottom:12px;"></h3>
-      <div id="material-qr-code" style="display:inline-block;background:#fff;padding:12px;border-radius:12px;margin-bottom:12px;"></div>
-      <div style="font-size:12px;color:#8a95a8;margin-bottom:12px;">學員掃描此 QR 碼直接進入考試</div>
-      <button class="btn-secondary" onclick="showCourseList()" style="font-size:13px;">📋 查看所有課程</button>
-    </div>
-    <!-- 課程列表（技術長用）-->
-    <div class="material-card" id="material-course-list" style="display:none;">
-      <h3 style="margin-bottom:12px;">📚 所有課程</h3>
-      <div id="course-list-body"></div>
-    </div>
-    <!-- 學員閱讀區 -->
-    <div class="material-card" id="material-display-wrap">
-      <h3 id="material-display-title" style="color:#185FA5;margin-bottom:12px;"></h3>
-      <div class="material-display" id="material-display">載入中...</div>
-      <img id="material-display-img" class="img-preview" style="display:none;">
-    </div>
-  </div>
-</div>
-
-<!-- ════════════ 線上考試 ════════════ -->
-<div id="page-exam" class="page">
-  <div class="sub-header">
-    <button class="back-btn" onclick="goHome()">←</button>
-    <h2>📝 線上考試</h2>
-  </div>
-  <div class="page-body" id="exam-body">
-    <div class="quiz-card" style="text-align:center;padding:32px 20px;">
-      <div style="font-size:48px;margin-bottom:16px;">🤖</div>
-      <div style="font-size:16px;font-weight:700;color:#1a2340;margin-bottom:8px;">AI 智能出題</div>
-      <div style="font-size:13px;color:#8a95a8;margin-bottom:24px;">根據教材內容自動生成 10 道題目</div>
-      <button class="btn-primary" onclick="startExam()" style="max-width:200px;margin:0 auto;display:block;">開始考試</button>
-    </div>
-  </div>
-</div>
-
-<!-- ════════════ 語音備課 ════════════ -->
+<!-- 語音備課頁 -->
 <div id="page-voice" class="page">
   <div class="sub-header">
     <button class="back-btn" onclick="goHome()">←</button>
     <h2>🎤 語音備課</h2>
   </div>
   <div class="page-body">
-    <!-- 錄音區 -->
-    <div class="voice-status">
+    <div class="card" style="text-align:center;padding:24px 20px;">
       <button class="mic-btn" id="mic-btn" onclick="toggleRecording()">🎤</button>
       <div id="mic-status" style="font-size:14px;font-weight:600;color:#1a2340;">點擊開始錄音</div>
-      <div style="font-size:12px;color:#8a95a8;margin-top:4px;">支援手機與電腦</div>
+      <div style="font-size:12px;color:#8a95a8;margin-top:4px;">錄完後可補充圖片說明，再產生題目</div>
     </div>
-    <!-- 逐字稿 -->
-    <div class="transcript-box" style="margin-bottom:14px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-        <span style="font-size:14px;font-weight:700;color:#185FA5;">逐字稿</span>
-        <button class="btn-secondary" onclick="saveTranscript()" style="padding:6px 14px;font-size:12px;border-radius:8px;">儲存為教材</button>
-      </div>
-      <div class="transcript-text" id="transcript-text">錄音後自動顯示逐字稿...</div>
+    <div class="card">
+      <h3>逐字稿（可手動編輯）</h3>
+      <textarea id="transcript-text" rows="5" placeholder="錄音後自動顯示，或直接手動輸入課程內容..."></textarea>
     </div>
-    <!-- 教學圖片 6 張 -->
-    <div style="background:#fff;border-radius:20px;padding:16px;box-shadow:0 2px 12px rgba(0,0,0,0.06);">
-      <div style="font-size:14px;font-weight:700;color:#185FA5;margin-bottom:12px;">📸 教學圖片（6張）</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;" id="voice-img-grid">
-        <!-- 由 JS 生成 -->
-      </div>
+    <div class="card">
+      <h3>📸 步驟圖片與文字說明（最多6張）</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;" id="img-grid"></div>
+    </div>
+    <div class="card">
+      <h3>🤖 AI 產生考題</h3>
+      <div style="font-size:13px;color:#8a95a8;margin-bottom:12px;">根據逐字稿與圖片說明自動出10題四選一選擇題</div>
+      <button class="btn-primary" id="gen-btn" onclick="generateQuestions()">✨ 產生題目 + QR碼</button>
+      <div id="gen-status" style="margin-top:10px;font-size:13px;color:#185FA5;display:none;line-height:1.6;"></div>
+    </div>
+    <div class="card" id="qr-wrap" style="display:none;text-align:center;">
+      <h3 style="margin-bottom:12px;">📱 學員考試 QR 碼</h3>
+      <div id="qr-code" style="display:inline-block;background:#fff;padding:12px;border-radius:12px;margin-bottom:10px;"></div>
+      <div style="font-size:12px;color:#8a95a8;">學員掃碼 → 選姓名 → 直接考試</div>
     </div>
   </div>
 </div>
 
-<!-- ════════════ 成績統計 ════════════ -->
+<!-- 學員教材頁 -->
+<div id="page-material" class="page">
+  <div class="sub-header">
+    <button class="back-btn" onclick="logout()">←</button>
+    <h2>📖 學習教材</h2>
+  </div>
+  <div class="page-body">
+    <div class="card" id="material-loading" style="text-align:center;padding:32px;">
+      <div style="font-size:28px;margin-bottom:10px;">⏳</div>
+      <div style="font-size:14px;color:#8a95a8;">載入教材中...</div>
+    </div>
+    <div class="card" id="material-content" style="display:none;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+        <div style="width:36px;height:36px;border-radius:50%;background:#E1F5EE;display:flex;align-items:center;justify-content:center;font-size:18px;">👤</div>
+        <div>
+          <div style="font-size:14px;font-weight:700;color:#1a2340;" id="material-user-name"></div>
+          <div style="font-size:11px;color:#8a95a8;">請閱讀完教材後再開始考試</div>
+        </div>
+      </div>
+      <h3 style="margin-bottom:12px;">📋 課程逐字稿</h3>
+      <div class="material-text" id="material-body"></div>
+    </div>
+    <div id="material-steps"></div>
+    <button class="start-exam-btn" id="start-exam-btn" style="display:none;" onclick="goExam()">
+      ✅ 教材已閱讀，開始考試 →
+    </button>
+  </div>
+</div>
+
+<!-- 考試頁 -->
+<div id="page-exam" class="page">
+  <div class="sub-header">
+    <button class="back-btn" onclick="examBack()">←</button>
+    <h2>📝 線上考試</h2>
+  </div>
+  <div class="page-body" id="exam-body"></div>
+</div>
+
+<!-- 成績後台 -->
 <div id="page-stats" class="page">
   <div class="sub-header">
     <button class="back-btn" onclick="goHome()">←</button>
-    <h2>📊 成績統計</h2>
+    <h2>📊 成績後台</h2>
   </div>
   <div class="page-body">
     <div class="stats-summary">
-      <div class="stat-box">
-        <div class="stat-num" id="stat-total">-</div>
-        <div class="stat-label">考試人數</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-num" id="stat-avg">-</div>
-        <div class="stat-label">平均分數</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-num" id="stat-pass">-</div>
-        <div class="stat-label">及格人數</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-num" id="stat-sign">-</div>
-        <div class="stat-label">今日簽到</div>
-      </div>
+      <div class="stat-box"><div class="stat-num" id="stat-total">-</div><div class="stat-label">考試人數</div></div>
+      <div class="stat-box"><div class="stat-num" id="stat-avg">-</div><div class="stat-label">平均分數</div></div>
+      <div class="stat-box"><div class="stat-num" id="stat-pass">-</div><div class="stat-label">及格人數</div></div>
+      <div class="stat-box"><div class="stat-num" id="stat-rate">-</div><div class="stat-label">及格率</div></div>
     </div>
-    <div style="background:#fff;border-radius:20px;padding:16px;box-shadow:0 2px 12px rgba(0,0,0,0.06);">
-      <div style="font-size:14px;font-weight:700;color:#185FA5;margin-bottom:12px;">學員成績明細</div>
-      <div class="result-list" id="result-list"><div style="text-align:center;color:#aaa;padding:20px;">載入中...</div></div>
+    <div class="card" id="analysis-wrap" style="display:none;">
+      <h3>📉 各題答錯分析（前5題）</h3>
+      <div id="analysis-body"></div>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <h3 style="margin:0;">學員成績明細</h3>
+        <button onclick="clearStats()" style="font-size:11px;color:#A32D2D;background:none;border:none;cursor:pointer;">🗑 清除</button>
+      </div>
+      <div id="result-list"><div style="text-align:center;color:#aaa;padding:20px;">載入中...</div></div>
     </div>
   </div>
 </div>
 
-<!-- ════════════ 技術長密碼 ════════════ -->
+<!-- 技術長密碼 -->
 <div class="modal-overlay" id="tech-modal">
   <div class="modal-box">
     <h3>🔑 技術長 / 管理員登入</h3>
@@ -479,635 +269,355 @@ textarea.material-input:focus{outline:none;border-color:#185FA5;}
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script>
-// ════ 設定 ════
-// 永康廠 + 歸仁廠 學員姓名（排除技術長蘇博仁）
-var NAMES = [
-  // 永康鈑金組
-  '楊家豪','葉昶廷','邱中韋','蔡松益','王耀彬',
-  // 永康修護組
-  '謝福志','陳重佑','陳昱傑','陳文青','許韶剛',
-  '邱柏誠','林建男','楊晉嘉','林智瑋','梁仲旻',
-  '黃昱愷','黃國偉','吳聘訪','穆冠忡','李慶珍',
-  '宋偉祥','蘇晋賢','李右淋','孫志文','鄭龍祥',
-  '林佳楓','周明勳','蘇紹惟','蔡名龍',
-  // 永康接待組
-  '孫煜展','李俊輝','黃詩詠','張家銓','宋秉霖','蘇柏豪','劉倍源',
-  // 歸仁修護組
-  '黃冠榮','蔡裕全','吳晏丞','莊祁穎','鄭佳勝','張翔政','李章愷','林功源','黃武正','黃登龍',
-  // 歸仁接待組
-  '吳典松','薛承恩','林士勛'
-];
-var TECH_PW = '1234';
-var ADMIN_PW = '9999';
+var NAMES=['楊家豪','葉昶廷','邱中韋','蔡松益','王耀彬','謝福志','陳重佑','陳昱傑','陳文青','許韶剛','邱柏誠','林建男','楊晉嘉','林智瑋','梁仲旻','黃昱愷','黃國偉','吳聘訪','穆冠忡','李慶珍','宋偉祥','蘇晋賢','李右淋','孫志文','鄭龍祥','林佳楓','周明勳','蘇紹惟','蔡名龍','孫煜展','李俊輝','黃詩詠','張家銓','宋秉霖','蘇柏豪','劉倍源','黃冠榮','蔡裕全','吳晏丞','莊祁穎','鄭佳勝','張翔政','李章愷','林功源','黃武正','黃登龍','吳典松','薛承恩','林士勛'];
+var TECH_PW='1234', ADMIN_PW='9999';
+var db=null, currentUser={name:'',role:'trainee'};
+var questions=[], currentQ=0, answers=[];
+var isRecording=false, mediaRecog=null, fullTranscript='';
+var fromQR=false;
 
-// 語音備課圖片（技術長教學用）
-var VOICE_IMAGES = [
-  {title:'SBR 工法步驟 1', url:''},
-  {title:'SBR 工法步驟 2', url:''},
-  {title:'SBR 工法步驟 3', url:''},
-  {title:'SBR 工法步驟 4', url:''},
-  {title:'SBR 工法步驟 5', url:''},
-  {title:'SBR 工法步驟 6', url:''},
-];
+window.addEventListener('load',function(){
+  try{
+    firebase.initializeApp({apiKey:"AIzaSyCoeBRe_i2njEyDI0FPv9HXEGNxBb6eqg8",authDomain:"yongkank-63703.firebaseapp.com",projectId:"yongkank-63703",storageBucket:"yongkank-63703.firebasestorage.app",messagingSenderId:"353225693174",appId:"1:353225693174:web:3d70fafa51e3ab8c0219d7"});
+    db=firebase.firestore();
+  }catch(e){}
 
-var db = null;
-var currentUser = {name:'', role:'trainee'};
-var questions = [], currentQ = 0, answers = [], examDone = false;
-var sigCanvas, sigCtx, isSigning = false, sigLastX, sigLastY;
-var mediaRecognition = null, isRecording = false, fullTranscript = '';
-
-// ════ 啟動（等所有腳本載入完再執行）════
-window.addEventListener('load', function(){
-  // Firebase 初始化
-  var firebaseConfig={
-    apiKey:"AIzaSyCoeBRe_i2njEyDI0FPv9HXEGNxBb6eqg8",
-    authDomain:"yongkank-63703.firebaseapp.com",
-    projectId:"yongkank-63703",
-    storageBucket:"yongkank-63703.firebasestorage.app",
-    messagingSenderId:"353225693174",
-    appId:"1:353225693174:web:3d70fafa51e3ab8c0219d7"
-  };
-  try {
-    firebase.initializeApp(firebaseConfig);
-    db = firebase.firestore();
-  } catch(e) { console.warn('Firebase 初始化失敗:', e); }
-
-  // 檢查 URL 是否帶有課程參數（學員掃 QR 碼進來）
-  var urlParams = new URLSearchParams(window.location.search);
-  var courseParam = urlParams.get('course');
-  if(courseParam){
-    currentCourseId = courseParam;
-    // 在登入姓名按鈕下方加提示
-    var hint = document.createElement('div');
-    hint.style.cssText = 'margin-top:12px;padding:10px 14px;background:#E6F1FB;border-radius:12px;font-size:13px;color:#0C3A6B;font-weight:600;text-align:center;';
-    hint.textContent = '📝 選擇姓名後直接進入考試';
-    document.getElementById('name-grid').after(hint);
-    // 登入後直接跳考試
-    window.goExamAfterLogin = true;
+  var params=new URLSearchParams(window.location.search);
+  if(params.get('session')){
+    fromQR=true;
+    document.getElementById('qr-hint').style.display='block';
   }
 
-  // 建立登入姓名按鈕
-  var grid = document.getElementById('name-grid');
+  var grid=document.getElementById('name-grid');
   NAMES.forEach(function(n){
-    var b = document.createElement('button');
-    b.className = 'name-btn';
-    b.textContent = n;
-    b.onclick = function(){ loginAsTrainee(n); };
+    var b=document.createElement('button');
+    b.className='name-btn'; b.textContent=n;
+    b.onclick=function(){ loginTrainee(n); };
     grid.appendChild(b);
   });
+  buildImgGrid();
 });
 
-function loginAsTrainee(name){
-  currentUser = {name:name, role:'trainee'};
-  if(window.goExamAfterLogin){
-    enterApp();
-    setTimeout(function(){ openPage('page-exam'); }, 100);
-  } else {
-    enterApp();
-  }
+// ── 登入 ──
+function loginTrainee(name){
+  currentUser={name:name,role:'trainee'};
+  showPage('page-material');
+  loadMaterial();
 }
-function openTechLogin(){ document.getElementById('tech-modal').classList.add('open'); setTimeout(()=>document.getElementById('tech-pw').focus(),100); }
+function openTechModal(){ document.getElementById('tech-modal').classList.add('open'); setTimeout(function(){ document.getElementById('tech-pw').focus(); },100); }
 function closeTechModal(){ document.getElementById('tech-modal').classList.remove('open'); document.getElementById('tech-pw').value=''; }
 function verifyTech(){
-  const pw = document.getElementById('tech-pw').value;
-  if(pw === ADMIN_PW){ currentUser={name:'管理員',role:'admin'}; closeTechModal(); enterApp(); }
-  else if(pw === TECH_PW){ currentUser={name:'蘇博仁',role:'tech'}; closeTechModal(); enterApp(); }
+  var pw=document.getElementById('tech-pw').value;
+  if(pw===ADMIN_PW){ currentUser={name:'管理員',role:'admin'}; closeTechModal(); enterHome(); }
+  else if(pw===TECH_PW){ currentUser={name:'蘇博仁',role:'tech'}; closeTechModal(); enterHome(); }
   else showToast('密碼錯誤');
 }
-function logout(){ currentUser={name:'',role:'trainee'}; showPage('page-login'); }
+function logout(){ currentUser={name:'',role:'trainee'}; fromQR=false; showPage('page-login'); }
 
-function enterApp(){
-  document.getElementById('home-name').textContent = currentUser.name;
-  document.getElementById('home-avatar').textContent = currentUser.name[0] || '?';
-  const roleMap = {trainee:'學員',tech:'技術長',admin:'管理員'};
-  document.getElementById('home-role').textContent = roleMap[currentUser.role];
-  buildMenu();
+function enterHome(){
+  document.getElementById('home-name').textContent=currentUser.name;
+  document.getElementById('home-avatar').textContent=currentUser.name[0]||'?';
+  document.getElementById('home-role').textContent=currentUser.role==='admin'?'管理員':'技術長';
+  var grid=document.getElementById('menu-grid');
+  grid.innerHTML='';
+  [{icon:'🎤',label:'語音備課',desc:'錄音＋圖片＋AI出題',bg:'icon-teal',page:'page-voice'},
+   {icon:'📊',label:'成績後台',desc:'學員成績與分析',bg:'icon-purple',page:'page-stats',wide:true}
+  ].forEach(function(m){
+    var d=document.createElement('div');
+    d.className='menu-card'+(m.wide?' wide':'');
+    d.innerHTML='<div class="card-icon '+m.bg+'">'+m.icon+'</div><div class="card-label">'+m.label+'</div><div class="card-desc">'+m.desc+'</div>';
+    d.onclick=function(){ openPage(m.page); };
+    grid.appendChild(d);
+  });
   showPage('page-home');
 }
 
-// ════ 選單建構 ════
-var MENUS = {
-  trainee:[
-    {icon:'✍️',label:'手寫簽到',desc:'確認出席',bg:'icon-blue',page:'page-sign'},
-    {icon:'📖',label:'學習教材',desc:'查看課程',bg:'icon-green',page:'page-material'},
-    {icon:'📝',label:'線上考試',desc:'AI 智能出題',bg:'icon-amber',page:'page-exam',wide:true},
-  ],
-  tech:[
-    {icon:'✍️',label:'手寫簽到',desc:'出席管理',bg:'icon-blue',page:'page-sign'},
-    {icon:'📖',label:'學習教材',desc:'編輯課程',bg:'icon-green',page:'page-material'},
-    {icon:'📝',label:'線上考試',desc:'AI 出題',bg:'icon-amber',page:'page-exam'},
-    {icon:'🎤',label:'語音備課',desc:'錄音轉逐字稿',bg:'icon-teal',page:'page-voice'},
-    {icon:'📊',label:'成績統計',desc:'全體成績',bg:'icon-purple',page:'page-stats',wide:true},
-  ],
-  admin:[
-    {icon:'✍️',label:'手寫簽到',desc:'出席管理',bg:'icon-blue',page:'page-sign'},
-    {icon:'📖',label:'學習教材',desc:'教材管理',bg:'icon-green',page:'page-material'},
-    {icon:'📝',label:'線上考試',desc:'AI 出題',bg:'icon-amber',page:'page-exam'},
-    {icon:'🎤',label:'語音備課',desc:'錄音轉逐字稿',bg:'icon-teal',page:'page-voice'},
-    {icon:'📊',label:'成績統計',desc:'完整報告',bg:'icon-purple',page:'page-stats'},
-    {icon:'🔗',label:'QR 碼',desc:'學員掃碼入口',bg:'icon-red',action:'showQR'},
-  ],
-};
-function buildMenu(){
-  var grid = document.getElementById('menu-grid');
-  grid.innerHTML = '';
-  var role = (currentUser && currentUser.role) ? currentUser.role : 'trainee';
-  var list = MENUS[role] || MENUS['trainee'];
-  list.forEach(function(m){
-    var d = document.createElement('div');
-    d.className = 'menu-card' + (m.wide?' wide':'');
-    d.innerHTML = '<div class="card-icon '+m.bg+'">'+m.icon+'</div><div class="card-label">'+m.label+'</div><div class="card-desc">'+m.desc+'</div>';
-    d.onclick = (function(mi){ return function(){ mi.action ? window[mi.action]() : openPage(mi.page); }; })(m);
-    grid.appendChild(d);
-  });
-}
-
-// ════ 頁面切換 ════
-function showPage(id){ document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.getElementById(id).classList.add('active'); window.scrollTo(0,0); }
+function showPage(id){ document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); }); document.getElementById(id).classList.add('active'); window.scrollTo(0,0); }
 function goHome(){ showPage('page-home'); }
 function openPage(id){
   showPage(id);
-  if(id==='page-sign') initSign();
-  if(id==='page-material') loadMaterial();
   if(id==='page-stats') loadStats();
-  if(id==='page-exam') resetExam();
-  if(id==='page-voice'){ initVoiceImages(); startTranscriptListener(); }
+  if(id==='page-voice') loadVoiceData();
 }
+function examBack(){ if(fromQR){ fromQR=false; logout(); } else showPage('page-material'); }
 
-// ════ Toast ════
-function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
-
-// ══════════════════════════════
-// ════ 簽到功能 ════
-// ══════════════════════════════
-function initSign(){
-  sigCanvas = document.getElementById('sig-pad');
-  sigCtx = sigCanvas.getContext('2d');
-  const ratio = window.devicePixelRatio || 1;
-  sigCanvas.width = sigCanvas.offsetWidth * ratio;
-  sigCanvas.height = sigCanvas.offsetHeight * ratio;
-  sigCtx.scale(ratio, ratio);
-  sigCtx.strokeStyle = '#185FA5';
-  sigCtx.lineWidth = 3;
-  sigCtx.lineCap = 'round';
-  sigCtx.lineJoin = 'round';
-  clearSig();
-  // touch
-  sigCanvas.addEventListener('touchstart', e=>{e.preventDefault(); const t=e.touches[0]; const r=sigCanvas.getBoundingClientRect(); isSigning=true; sigLastX=t.clientX-r.left; sigLastY=t.clientY-r.top;}, {passive:false});
-  sigCanvas.addEventListener('touchmove', e=>{e.preventDefault(); if(!isSigning) return; const t=e.touches[0]; const r=sigCanvas.getBoundingClientRect(); const x=t.clientX-r.left, y=t.clientY-r.top; sigCtx.beginPath(); sigCtx.moveTo(sigLastX,sigLastY); sigCtx.lineTo(x,y); sigCtx.stroke(); sigLastX=x; sigLastY=y;}, {passive:false});
-  sigCanvas.addEventListener('touchend', ()=>isSigning=false);
-  // mouse
-  sigCanvas.addEventListener('mousedown', e=>{const r=sigCanvas.getBoundingClientRect(); isSigning=true; sigLastX=e.clientX-r.left; sigLastY=e.clientY-r.top;});
-  sigCanvas.addEventListener('mousemove', e=>{if(!isSigning) return; const r=sigCanvas.getBoundingClientRect(); const x=e.clientX-r.left, y=e.clientY-r.top; sigCtx.beginPath(); sigCtx.moveTo(sigLastX,sigLastY); sigCtx.lineTo(x,y); sigCtx.stroke(); sigLastX=x; sigLastY=y;});
-  sigCanvas.addEventListener('mouseup', ()=>isSigning=false);
-  loadSignList();
-}
-function clearSig(){ if(!sigCtx) return; sigCtx.clearRect(0,0,sigCanvas.width,sigCanvas.height); sigCtx.fillStyle='#f8faff'; sigCtx.fillRect(0,0,sigCanvas.width,sigCanvas.height); }
-async function submitSig(){
-  const imgData = sigCanvas.toDataURL('image/png');
-  const now = new Date();
-  const timeStr = now.toTimeString().slice(0,5);
-  const dateStr = now.toISOString().slice(0,10);
-  await db.collection('sbr_training').doc('sign_'+dateStr+'_'+currentUser.name).set({
-    name: currentUser.name, date: dateStr, time: timeStr, sig: imgData, ts: Date.now()
-  });
-  showToast('✅ 簽到成功！');
-  clearSig();
-}
-
-// 即時監聽簽到（手機簽到→電腦自動更新）
-var signListener = null;
-function loadSignList(){
-  if(signListener) signListener(); // 取消舊監聽
-  var dateStr = new Date().toISOString().slice(0,10);
-  var list = document.getElementById('sign-list');
-  var wrap = document.getElementById('sign-list-wrap');
-  var count = document.getElementById('sign-count');
-  signListener = db.collection('sbr_training')
-    .where('date','==',dateStr)
-    .orderBy('ts')
-    .onSnapshot(function(snap){
-      if(snap.empty){ wrap.style.display='none'; return; }
-      wrap.style.display='block';
-      list.innerHTML='';
-      count.textContent = '共 '+snap.size+' 人';
-      snap.forEach(function(d){
-        var data=d.data();
-        var item=document.createElement('div');
-        item.className='sign-item';
-        item.style.flexDirection='column';
-        item.style.alignItems='flex-start';
-        item.style.gap='8px';
-        var top = document.createElement('div');
-        top.style.cssText='display:flex;align-items:center;gap:12px;width:100%;';
-        top.innerHTML='<div class="s-name">'+data.name+'</div><div class="s-time">'+data.time+'</div><span class="sign-badge">已簽到</span>';
-        item.appendChild(top);
-        // 顯示手寫圖片
-        if(data.sig){
-          var img=document.createElement('img');
-          img.src=data.sig;
-          img.style.cssText='width:100%;max-height:60px;object-fit:contain;border-radius:8px;background:#f8faff;border:1px solid #e8edf5;';
-          item.appendChild(img);
-        }
-        list.appendChild(item);
-      });
-    });
-}
-
-// ══════════════════════════════
-// ════ 教材功能 ════
-// ══════════════════════════════
-var currentCourseId = 'material_current';
-
+// ── 學員教材頁 ──
 async function loadMaterial(){
-  var isTech = currentUser.role==='tech' || currentUser.role==='admin';
-  document.getElementById('material-tech-input').style.display = isTech ? 'block' : 'none';
-  document.getElementById('material-qr-wrap').style.display = 'none';
-  document.getElementById('material-course-list').style.display = 'none';
-  var snap = await db.collection('sbr_training').doc(currentCourseId).get();
-  var disp = document.getElementById('material-display');
-  var titleEl = document.getElementById('material-display-title');
-  var imgEl = document.getElementById('material-display-img');
-  if(snap.exists){
-    var d = snap.data();
-    titleEl.textContent = d.title || '課程內容';
-    disp.textContent = d.text || '（無文字內容）';
-    if(d.img){ imgEl.src=d.img; imgEl.style.display='block'; }
-    else imgEl.style.display='none';
-    if(isTech){
-      document.getElementById('material-title').value = d.title || '';
-      document.getElementById('material-text').value = d.text || '';
-    }
-  } else { titleEl.textContent=''; disp.textContent='尚無教材內容'; }
-}
-function previewImg(input){
-  var file=input.files[0]; if(!file) return;
-  var reader=new FileReader();
-  reader.onload=function(e){ var img=document.getElementById('material-img-preview'); img.src=e.target.result; img.style.display='block'; };
-  reader.readAsDataURL(file);
-}
-async function saveMaterial(){
-  var title = document.getElementById('material-title').value.trim();
-  var text = document.getElementById('material-text').value.trim();
-  if(!title){ showToast('請輸入課程標題'); return; }
-  if(!text){ showToast('請輸入課程內容'); return; }
-  var courseId = 'course_' + title.replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g,'_');
-  currentCourseId = courseId;
-  var imgEl = document.getElementById('material-img-preview');
-  var img = imgEl.style.display!=='none' ? imgEl.src : '';
-  await db.collection('sbr_training').doc(courseId).set({
-    title:title, text:text, img:img, savedBy:currentUser.name, ts:Date.now(), type:'material'
-  });
-  showToast('✅ 課程已儲存');
-  showCourseQR(courseId, title);
-  loadMaterial();
-}
-function showCourseQR(courseId, title){
-  var wrap = document.getElementById('material-qr-wrap');
-  var qrDiv = document.getElementById('material-qr-code');
-  document.getElementById('material-qr-title').textContent = '📌 ' + title;
-  qrDiv.innerHTML = '';
-  wrap.style.display = 'block';
-  var url = window.location.origin + window.location.pathname + '?course=' + encodeURIComponent(courseId);
-  new QRCode(qrDiv, {text:url, width:160, height:160});
-}
-async function showCourseList(){
-  var listWrap = document.getElementById('material-course-list');
-  var listBody = document.getElementById('course-list-body');
-  listWrap.style.display = 'block';
-  listBody.innerHTML = '<div style="color:#aaa;font-size:13px;">載入中...</div>';
-  var snap = await db.collection('sbr_training').where('type','==','material').orderBy('ts','desc').get();
-  if(snap.empty){ listBody.innerHTML='<div style="color:#aaa;font-size:13px;">尚無課程</div>'; return; }
-  listBody.innerHTML = '';
-  snap.forEach(function(d){
-    var data = d.data();
-    var row = document.createElement('div');
-    row.style.cssText = 'padding:12px;background:#f8faff;border-radius:12px;margin-bottom:8px;cursor:pointer;border:1.5px solid #e8edf5;';
-    row.innerHTML = '<div style="font-size:14px;font-weight:700;color:#0C3A6B;">'+data.title+'</div>'
-      +'<div style="font-size:11px;color:#8a95a8;margin-top:4px;">'+new Date(data.ts).toLocaleString('zh-TW')+'</div>';
-    row.onclick = function(){ currentCourseId=d.id; showCourseQR(d.id,data.title); loadMaterial(); };
-    listBody.appendChild(row);
-  });
-}
+  document.getElementById('material-loading').style.display='block';
+  document.getElementById('material-content').style.display='none';
+  document.getElementById('material-steps').innerHTML='';
+  document.getElementById('start-exam-btn').style.display='none';
+  document.getElementById('material-user-name').textContent=currentUser.name;
 
-// ══════════════════════════════
-// ════ 考試功能 ════
-// ══════════════════════════════
-function resetExam(){
-  questions=[]; currentQ=0; answers=[]; examDone=false;
-  document.getElementById('exam-body').innerHTML=`
-    <div class="quiz-card" style="text-align:center;padding:32px 20px;">
-      <div style="font-size:48px;margin-bottom:16px;">🤖</div>
-      <div style="font-size:16px;font-weight:700;color:#1a2340;margin-bottom:8px;">AI 智能出題</div>
-      <div style="font-size:13px;color:#8a95a8;margin-bottom:24px;">根據教材內容自動生成 10 道題目</div>
-      <button class="btn-primary" onclick="startExam()" style="max-width:200px;margin:0 auto;display:block;">開始考試</button>
-    </div>`;
-}
-async function startExam(){
-  const body = document.getElementById('exam-body');
-  body.innerHTML='<div class="quiz-card" style="text-align:center;padding:40px 20px;"><div style="font-size:32px;margin-bottom:12px;">⏳</div><div style="font-size:15px;color:#8a95a8;">AI 正在生成題目...</div></div>';
-  // 讀取教材（依目前課程ID）
-  const snap = await db.collection('sbr_training').doc(currentCourseId).get();
-  const material = snap.exists ? (snap.data().text || '') : '';
-  if(!material){ body.innerHTML='<div class="quiz-card" style="text-align:center;padding:32px;"><div style="font-size:15px;color:#A32D2D;">請先輸入教材內容</div></div>'; return; }
-  // 呼叫 Claude API 出題
   try{
-    const res = await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        model:'claude-sonnet-4-20250514',
-        max_tokens:2000,
-        messages:[{role:'user',content:`根據以下教材，出10道繁體中文四選一選擇題，每題有1個正確答案。
-回傳純JSON陣列，不要其他文字，格式如下：
-[{"q":"題目","opts":["A","B","C","D"],"ans":0,"exp":"解析"}]
-ans是正確答案的index(0-3)。
-教材：${material}`}]
-      })
-    });
-    const data = await res.json();
-    const text = data.content[0].text;
-    const clean = text.replace(/```json|```/g,'').trim();
-    questions = JSON.parse(clean);
-    currentQ=0; answers=[];
-    renderQuestion();
-  } catch(e){ body.innerHTML='<div class="quiz-card" style="text-align:center;padding:32px;"><div style="font-size:15px;color:#A32D2D;">出題失敗，請重試</div></div>'; }
-}
-function renderQuestion(){
-  const q = questions[currentQ];
-  const body = document.getElementById('exam-body');
-  const pct = (currentQ/questions.length*100).toFixed(0);
-  body.innerHTML=`
-    <div class="quiz-card">
-      <div class="q-progress">
-        <div class="q-bar"><div class="q-bar-fill" style="width:${pct}%"></div></div>
-        <div class="q-num">${currentQ+1}/${questions.length}</div>
-      </div>
-      <div class="q-text">${q.q}</div>
-      <div class="q-options" id="q-opts">
-        ${q.opts.map((o,i)=>`<button class="q-opt" onclick="selectAns(${i})">${['A','B','C','D'][i]}. ${o}</button>`).join('')}
-      </div>
-      <div class="answer-hint" id="answer-hint"></div>
-    </div>`;
-}
-function selectAns(idx){
-  const q = questions[currentQ];
-  answers.push(idx);
-  const opts = document.querySelectorAll('.q-opt');
-  opts.forEach((o,i)=>{ o.disabled=true; if(i===q.ans) o.classList.add('correct'); else if(i===idx) o.classList.add('wrong'); });
-  const hint = document.getElementById('answer-hint');
-  hint.style.display='block';
-  hint.textContent = idx===q.ans ? '✅ 正確！'+q.exp : '❌ 答錯了。'+q.exp;
-  setTimeout(()=>{
-    currentQ++;
-    if(currentQ < questions.length) renderQuestion();
-    else showScore();
-  }, 1800);
-}
-async function showScore(){
-  var correct = answers.filter(function(a,i){ return a===questions[i].ans; }).length;
-  var score = Math.round(correct/questions.length*100);
-  var pass = score>=60;
-  if(db) await db.collection('sbr_training').add({
-    type:'exam', name:currentUser.name, score:score, correct:correct, total:questions.length,
-    pass:pass, date:new Date().toISOString().slice(0,10), ts:Date.now()
-  });
+    // 讀逐字稿
+    var tSnap=await db.collection('sbr_training').doc('voice_transcript').get();
+    var transcript=tSnap.exists?tSnap.data().text||'':'';
 
-  // 建立完整答案列表 HTML
-  var answerHTML = '';
-  questions.forEach(function(q, i){
-    var myAns = answers[i];
-    var isCorrect = myAns === q.ans;
-    answerHTML += '<div style="background:'+(isCorrect?'#EAF3DE':'#FCEBEB')+';border-radius:14px;padding:14px;margin-bottom:10px;border-left:4px solid '+(isCorrect?'#3B6D11':'#A32D2D')+'">';
-    answerHTML += '<div style="font-size:13px;font-weight:700;color:#1a2340;margin-bottom:8px;">'+(i+1)+'. '+q.q+'</div>';
-    q.opts.forEach(function(opt, oi){
-      var isRight = oi === q.ans;
-      var isMine = oi === myAns;
-      var color = isRight ? '#3B6D11' : (isMine && !isRight ? '#A32D2D' : '#8a95a8');
-      var mark = isRight ? ' ✅' : (isMine && !isRight ? ' ❌' : '');
-      answerHTML += '<div style="font-size:12px;color:'+color+';padding:3px 0;font-weight:'+(isRight?'700':'400')+'">'+['A','B','C','D'][oi]+'. '+opt+mark+'</div>';
-    });
-    answerHTML += '<div style="font-size:11px;color:#185FA5;margin-top:8px;padding-top:8px;border-top:1px solid rgba(0,0,0,0.08);">💡 '+q.exp+'</div>';
-    answerHTML += '</div>';
-  });
+    document.getElementById('material-loading').style.display='none';
+    if(transcript){
+      document.getElementById('material-body').textContent=transcript;
+      document.getElementById('material-content').style.display='block';
+    }
 
-  document.getElementById('exam-body').innerHTML =
-    '<div class="score-card" style="margin-bottom:14px;">' +
-      '<div class="score-num">'+score+'</div>' +
-      '<div class="score-label">'+correct+'/'+questions.length+' 題正確 · '+(pass?'🎉 及格':'😢 未及格')+'</div>' +
-    '</div>' +
-    '<div class="quiz-card" style="margin-bottom:14px;">' +
-      '<div style="font-size:15px;font-weight:700;color:#185FA5;margin-bottom:14px;">📋 完整答案解析</div>' +
-      answerHTML +
-      '<button class="btn-primary" onclick="startExam()" style="margin-top:8px;">🔄 重新測驗</button>' +
-    '</div>';
+    // 讀6張圖片與說明
+    var stepsDiv=document.getElementById('material-steps');
+    var hasStep=false;
+    for(var i=0;i<6;i++){
+      var imgSnap=await db.collection('sbr_training').doc('voice_img_'+i).get();
+      var descSnap=await db.collection('sbr_training').doc('voice_desc_'+i).get();
+      var imgData=imgSnap.exists?imgSnap.data().img||'':'';
+      var descText=descSnap.exists?descSnap.data().text||'':'';
+      if(!imgData&&!descText) continue;
+      hasStep=true;
+      var stepDiv=document.createElement('div');
+      stepDiv.className='card';
+      stepDiv.style.marginBottom='12px';
+      var html='<div class="material-step-title">步驟 '+(i+1)+'</div>';
+      if(imgData) html+='<img src="'+imgData+'" style="width:100%;border-radius:12px;margin-bottom:10px;">';
+      if(descText) html+='<p style="font-size:14px;color:#1a2340;line-height:1.8;">'+descText+'</p>';
+      stepDiv.innerHTML=html;
+      stepsDiv.appendChild(stepDiv);
+    }
+
+    // 顯示開始考試按鈕
+    document.getElementById('start-exam-btn').style.display='block';
+
+    if(!transcript&&!hasStep){
+      document.getElementById('material-loading').style.display='none';
+      stepsDiv.innerHTML='<div class="card" style="text-align:center;padding:24px;color:#8a95a8;">技術長尚未上傳教材</div>';
+    }
+  }catch(e){
+    document.getElementById('material-loading').style.display='none';
+    document.getElementById('material-steps').innerHTML='<div class="card" style="text-align:center;padding:24px;color:#A32D2D;">載入失敗，請重試</div>';
+    document.getElementById('start-exam-btn').style.display='block';
+  }
 }
 
-// ══════════════════════════════
-// ════ 語音備課 ════
-// ══════════════════════════════
-function toggleRecording(){
-  if(isRecording) stopRecording(); else startRecording();
+function goExam(){
+  showPage('page-exam');
+  loadAndStartExam();
 }
-function initVoiceImages(){
-  var grid = document.getElementById('voice-img-grid');
+function showToast(msg){ var t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(function(){ t.classList.remove('show'); },2200); }
+
+// ── 語音備課 ──
+function toggleRecording(){ if(isRecording) stopRecording(); else startRecording(); }
+function startRecording(){
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){ showToast('此瀏覽器不支援語音辨識'); return; }
+  mediaRecog=new SR(); mediaRecog.lang='zh-TW'; mediaRecog.continuous=true; mediaRecog.interimResults=true;
+  var el=document.getElementById('transcript-text');
+  fullTranscript=el.value||'';
+  mediaRecog.onresult=function(e){
+    var interim='';
+    for(var i=e.resultIndex;i<e.results.length;i++){
+      if(e.results[i].isFinal) fullTranscript+=e.results[i][0].transcript;
+      else interim=e.results[i][0].transcript;
+    }
+    el.value=fullTranscript+interim;
+  };
+  mediaRecog.onerror=function(e){ showToast('語音錯誤：'+e.error); stopRecording(); };
+  mediaRecog.start(); isRecording=true;
+  document.getElementById('mic-btn').classList.add('recording');
+  document.getElementById('mic-btn').textContent='⏹️';
+  document.getElementById('mic-status').textContent='錄音中...點擊停止';
+}
+function stopRecording(){
+  if(mediaRecog){ mediaRecog.stop(); mediaRecog=null; }
+  isRecording=false;
+  document.getElementById('mic-btn').classList.remove('recording');
+  document.getElementById('mic-btn').textContent='🎤';
+  document.getElementById('mic-status').textContent='點擊開始錄音';
+  fullTranscript=document.getElementById('transcript-text').value;
+}
+
+function buildImgGrid(){
+  var grid=document.getElementById('img-grid');
   if(!grid) return;
-  grid.innerHTML = '';
-  for(var i=0; i<6; i++){
+  grid.innerHTML='';
+  for(var i=0;i<6;i++){
     (function(idx){
-      var slot = document.createElement('div');
-      slot.style.cssText = 'background:#f8faff;border-radius:14px;border:2px dashed #d0d9e8;min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;position:relative;';
-
-      // 圖片顯示
-      var imgEl = document.createElement('img');
-      imgEl.style.cssText = 'width:100%;height:120px;object-fit:cover;display:none;border-radius:12px;';
-
-      // 步驟標籤
-      var label = document.createElement('div');
-      label.style.cssText = 'font-size:13px;font-weight:700;color:#185FA5;margin-bottom:8px;';
-      label.textContent = '步驟 '+(idx+1);
-
-      // 兩個按鈕：拍照 + 上傳
-      var btnRow = document.createElement('div');
-      btnRow.style.cssText = 'display:flex;gap:6px;';
-
-      // 📷 拍照按鈕（手機直接開相機）
-      var inpCamera = document.createElement('input');
-      inpCamera.type='file'; inpCamera.accept='image/*'; inpCamera.capture='environment'; inpCamera.style.display='none';
-
-      var btnCamera = document.createElement('button');
-      btnCamera.textContent = '📷 拍照';
-      btnCamera.style.cssText = 'padding:7px 12px;border-radius:10px;background:#185FA5;color:#fff;border:none;font-size:12px;font-weight:700;cursor:pointer;';
-      btnCamera.onclick = function(){ inpCamera.click(); };
-
-      // 🖼 上傳按鈕（從相簿選）
-      var inpFile = document.createElement('input');
-      inpFile.type='file'; inpFile.accept='image/*'; inpFile.style.display='none';
-
-      var btnFile = document.createElement('button');
-      btnFile.textContent = '🖼 相簿';
-      btnFile.style.cssText = 'padding:7px 12px;border-radius:10px;background:#f0f4f8;color:#185FA5;border:1px solid #d0d9e8;font-size:12px;font-weight:700;cursor:pointer;';
-      btnFile.onclick = function(){ inpFile.click(); };
-
-      // 刪除按鈕（有圖片時顯示）
-      var btnDel = document.createElement('button');
-      btnDel.textContent = '🗑️';
-      btnDel.style.cssText = 'position:absolute;top:6px;right:6px;padding:4px 8px;border-radius:8px;background:rgba(0,0,0,0.5);color:#fff;border:none;font-size:12px;cursor:pointer;display:none;';
-      btnDel.onclick = function(e){
-        e.stopPropagation();
-        imgEl.style.display='none'; imgEl.src='';
-        label.style.display=''; btnRow.style.display='flex'; btnDel.style.display='none';
-        if(db) db.collection('sbr_training').doc('voice_img_'+idx).delete();
-      };
-
+      var wrap=document.createElement('div');
+      wrap.style.cssText='display:flex;flex-direction:column;gap:6px;';
+      var slot=document.createElement('div'); slot.className='img-slot';
+      var imgEl=document.createElement('img'); imgEl.id='simg-'+idx;
+      var lbl=document.createElement('div'); lbl.className='slot-label'; lbl.textContent='步驟'+(idx+1);
+      var btnRow=document.createElement('div'); btnRow.style.cssText='display:flex;gap:4px;';
+      var iCam=document.createElement('input'); iCam.type='file'; iCam.accept='image/*'; iCam.capture='environment'; iCam.style.display='none';
+      var bCam=document.createElement('button'); bCam.textContent='📷'; bCam.style.cssText='padding:5px 9px;border-radius:8px;background:#185FA5;color:#fff;border:none;font-size:13px;cursor:pointer;'; bCam.onclick=function(){ iCam.click(); };
+      var iFile=document.createElement('input'); iFile.type='file'; iFile.accept='image/*'; iFile.style.display='none';
+      var bFile=document.createElement('button'); bFile.textContent='🖼'; bFile.style.cssText='padding:5px 9px;border-radius:8px;background:#f0f4f8;color:#185FA5;border:1px solid #d0d9e8;font-size:13px;cursor:pointer;'; bFile.onclick=function(){ iFile.click(); };
+      var bDel=document.createElement('button'); bDel.textContent='🗑'; bDel.style.cssText='position:absolute;top:4px;right:4px;padding:3px 6px;border-radius:6px;background:rgba(0,0,0,0.45);color:#fff;border:none;font-size:11px;cursor:pointer;display:none;';
+      bDel.onclick=function(e){ e.stopPropagation(); imgEl.style.display='none'; lbl.style.display=''; btnRow.style.display='flex'; bDel.style.display='none'; if(db) db.collection('sbr_training').doc('voice_img_'+idx).delete(); };
       function handleFile(file){
         if(!file) return;
-        var reader = new FileReader();
-        reader.onload = function(e){
-          imgEl.src = e.target.result;
-          imgEl.style.display='block';
-          label.style.display='none';
-          btnRow.style.display='none';
-          btnDel.style.display='block';
-          if(db) db.collection('sbr_training').doc('voice_img_'+idx).set({img:e.target.result, title:'步驟'+(idx+1), ts:Date.now()});
-        };
-        reader.readAsDataURL(file);
+        var rd=new FileReader();
+        rd.onload=function(ev){ imgEl.src=ev.target.result; imgEl.style.display='block'; lbl.style.display='none'; btnRow.style.display='none'; bDel.style.display='block'; if(db) db.collection('sbr_training').doc('voice_img_'+idx).set({img:ev.target.result,ts:Date.now()}); };
+        rd.readAsDataURL(file);
       }
-
-      inpCamera.onchange = function(){ handleFile(inpCamera.files[0]); };
-      inpFile.onchange = function(){ handleFile(inpFile.files[0]); };
-
-      btnRow.appendChild(btnCamera);
-      btnRow.appendChild(btnFile);
-      slot.appendChild(imgEl);
-      slot.appendChild(label);
-      slot.appendChild(btnRow);
-      slot.appendChild(btnDel);
-      slot.appendChild(inpCamera);
-      slot.appendChild(inpFile);
-
-      // 讀取已存圖片
+      iCam.onchange=function(){ handleFile(iCam.files[0]); };
+      iFile.onchange=function(){ handleFile(iFile.files[0]); };
+      btnRow.appendChild(bCam); btnRow.appendChild(bFile);
+      slot.appendChild(imgEl); slot.appendChild(lbl); slot.appendChild(btnRow); slot.appendChild(bDel); slot.appendChild(iCam); slot.appendChild(iFile);
+      var desc=document.createElement('textarea'); desc.id='desc-'+idx; desc.rows=2; desc.placeholder='步驟'+(idx+1)+'文字說明（AI出題用）'; desc.style.fontSize='12px';
+      wrap.appendChild(slot); wrap.appendChild(desc); grid.appendChild(wrap);
       if(db){
-        db.collection('sbr_training').doc('voice_img_'+idx).get().then(function(snap){
-          if(snap.exists && snap.data().img){
-            imgEl.src=snap.data().img; imgEl.style.display='block';
-            label.style.display='none'; btnRow.style.display='none'; btnDel.style.display='block';
-          }
+        db.collection('sbr_training').doc('voice_img_'+idx).get().then(function(s){
+          if(s.exists&&s.data().img){ imgEl.src=s.data().img; imgEl.style.display='block'; lbl.style.display='none'; btnRow.style.display='none'; bDel.style.display='block'; }
         });
       }
-      grid.appendChild(slot);
     })(i);
   }
 }
-function startRecording(){
-  var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if(!SpeechRecognition){ showToast('此瀏覽器不支援語音辨識'); return; }
-  mediaRecognition = new SpeechRecognition();
-  mediaRecognition.lang = 'zh-TW';
-  mediaRecognition.continuous = true;
-  mediaRecognition.interimResults = true;
-  var el = document.getElementById('transcript-text');
-  fullTranscript = (el.textContent === '錄音後自動顯示逐字稿...') ? '' : el.textContent;
-  var saveTimer = null;
-  mediaRecognition.onresult = function(e){
-    var interim='';
-    for(var i=e.resultIndex;i<e.results.length;i++){
-      if(e.results[i].isFinal) fullTranscript += e.results[i][0].transcript;
-      else interim = e.results[i][0].transcript;
-    }
-    el.textContent = fullTranscript + interim;
-    // 每3秒寫入 Firebase 一次（節省費用）
-    clearTimeout(saveTimer);
-    saveTimer = setTimeout(function(){
-      if(db && fullTranscript) db.collection('sbr_training').doc('transcript_live').set({text: fullTranscript, ts: Date.now()});
-    }, 3000);
-  };
-  mediaRecognition.onerror = function(e){ showToast('語音錯誤：'+e.error); stopRecording(); };
-  mediaRecognition.start();
-  isRecording = true;
-  document.getElementById('mic-btn').classList.add('recording');
-  document.getElementById('mic-btn').textContent = '⏹️';
-  document.getElementById('mic-status').textContent = '錄音中...';
-  // 開始監聽（電腦端自動更新）
-  startTranscriptListener();
-}
-function stopRecording(){
-  if(mediaRecognition){ mediaRecognition.stop(); mediaRecognition=null; }
-  // 停止時存最終版本
-  if(db && fullTranscript) db.collection('sbr_training').doc('transcript_live').set({text: fullTranscript, ts: Date.now()});
-  isRecording = false;
-  document.getElementById('mic-btn').classList.remove('recording');
-  document.getElementById('mic-btn').textContent = '🎤';
-  document.getElementById('mic-status').textContent = '點擊開始錄音';
+
+function loadVoiceData(){
+  if(!db) return;
+  db.collection('sbr_training').doc('voice_transcript').get().then(function(s){ if(s.exists) document.getElementById('transcript-text').value=s.data().text||''; });
+  for(var i=0;i<6;i++){
+    (function(idx){ db.collection('sbr_training').doc('voice_desc_'+idx).get().then(function(s){ if(s.exists){ var el=document.getElementById('desc-'+idx); if(el) el.value=s.data().text||''; } }); })(i);
+  }
+  db.collection('sbr_training').doc('exam_session').get().then(function(s){ if(s.exists&&s.data().sessionId) showQRCode(s.data().sessionId); });
 }
 
-// 電腦端即時監聽逐字稿
-var transcriptListener = null;
-function startTranscriptListener(){
-  if(transcriptListener) return; // 已在監聽中
-  transcriptListener = db.collection('sbr_training').doc('transcript_live').onSnapshot(function(snap){
-    if(!snap.exists) return;
-    var el = document.getElementById('transcript-text');
-    if(el && !isRecording){ // 電腦端（非錄音方）才更新
-      el.textContent = snap.data().text || '';
+// ── AI 產生題目 ──
+async function generateQuestions(){
+  var transcript=document.getElementById('transcript-text').value.trim();
+  if(!transcript){ showToast('請先錄音或輸入課程內容'); return; }
+  var imgDescs=[];
+  for(var i=0;i<6;i++){
+    var d=document.getElementById('desc-'+i);
+    if(d&&d.value.trim()){ imgDescs.push('步驟'+(i+1)+'：'+d.value.trim()); if(db) db.collection('sbr_training').doc('voice_desc_'+i).set({text:d.value.trim(),ts:Date.now()}); }
+  }
+  if(db) db.collection('sbr_training').doc('voice_transcript').set({text:transcript,ts:Date.now()});
+  var content='課程逐字稿：\n'+transcript+(imgDescs.length?'\n\n步驟圖片說明：\n'+imgDescs.join('\n'):'');
+  var btn=document.getElementById('gen-btn'), status=document.getElementById('gen-status');
+  btn.disabled=true; status.style.display='block'; status.textContent='⏳ AI 正在出題，請稍候...';
+  try{
+    var res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:3000,messages:[{role:'user',content:'根據以下課程內容，出10道繁體中文四選一選擇題，每題1個正確答案。只回傳純JSON陣列，不要其他文字：\n[{"q":"題目","opts":["A選項","B選項","C選項","D選項"],"ans":0,"exp":"解析說明"}]\nans是正確答案index(0-3)。\n\n'+content}]})});
+    var data=await res.json();
+    var qs=JSON.parse(data.content[0].text.replace(/```json|```/g,'').trim());
+    var sid='session_'+Date.now();
+    await db.collection('sbr_training').doc('exam_session').set({sessionId:sid,questions:qs,createdBy:currentUser.name,ts:Date.now()});
+    status.textContent='✅ 已產生 '+qs.length+' 題！QR碼已更新，學員可以開始考試。';
+    showQRCode(sid);
+  }catch(e){ status.textContent='❌ 出題失敗，請重試'; }
+  btn.disabled=false;
+}
+
+function showQRCode(sid){
+  var wrap=document.getElementById('qr-wrap'), qrDiv=document.getElementById('qr-code');
+  qrDiv.innerHTML=''; wrap.style.display='block';
+  var url=window.location.origin+window.location.pathname+'?session='+encodeURIComponent(sid);
+  new QRCode(qrDiv,{text:url,width:180,height:180});
+}
+
+// ── 考試 ──
+async function loadAndStartExam(){
+  var body=document.getElementById('exam-body');
+  body.innerHTML='<div style="text-align:center;padding:40px 20px;"><div style="font-size:32px;margin-bottom:12px;">⏳</div><div style="font-size:15px;color:#8a95a8;">載入題目中...</div></div>';
+  try{
+    var snap=await db.collection('sbr_training').doc('exam_session').get();
+    if(!snap.exists||!snap.data().questions||!snap.data().questions.length){
+      body.innerHTML='<div class="card" style="text-align:center;padding:32px;"><div style="font-size:15px;color:#A32D2D;">尚無考試題目<br>請等技術長產生題目後再掃碼</div></div>'; return;
     }
+    questions=snap.data().questions; currentQ=0; answers=[];
+    renderQuestion();
+  }catch(e){ body.innerHTML='<div class="card" style="text-align:center;padding:32px;"><div style="font-size:15px;color:#A32D2D;">載入失敗，請重試</div></div>'; }
+}
+
+function renderQuestion(){
+  var q=questions[currentQ], pct=(currentQ/questions.length*100).toFixed(0);
+  document.getElementById('exam-body').innerHTML=
+    '<div class="card">'+
+      '<div class="q-progress"><div class="q-bar"><div class="q-bar-fill" style="width:'+pct+'%"></div></div><div class="q-num">'+(currentQ+1)+'/'+questions.length+'</div></div>'+
+      '<div class="q-text">'+q.q+'</div>'+
+      '<div class="q-options">'+q.opts.map(function(o,i){ return '<button class="q-opt" onclick="selectAns('+i+')">'+['A','B','C','D'][i]+'. '+o+'</button>'; }).join('')+'</div>'+
+      '<div class="answer-hint" id="answer-hint"></div>'+
+    '</div>';
+}
+
+function selectAns(idx){
+  var q=questions[currentQ];
+  answers.push({chosen:idx,correct:q.ans});
+  document.querySelectorAll('.q-opt').forEach(function(o,i){ o.disabled=true; if(i===q.ans) o.classList.add('correct'); else if(i===idx) o.classList.add('wrong'); });
+  var hint=document.getElementById('answer-hint');
+  hint.style.display='block';
+  hint.textContent=idx===q.ans?'✅ 正確！'+q.exp:'❌ 答錯了。正確答案：'+['A','B','C','D'][q.ans]+'。'+q.exp;
+  setTimeout(function(){ currentQ++; if(currentQ<questions.length) renderQuestion(); else showScore(); },2000);
+}
+
+async function showScore(){
+  var correct=answers.filter(function(a){ return a.chosen===a.correct; }).length;
+  var score=Math.round(correct/questions.length*100), pass=score>=60;
+  if(db){
+    var wrong=[];
+    answers.forEach(function(a,i){ if(a.chosen!==a.correct) wrong.push(i+1); });
+    await db.collection('sbr_training').add({type:'exam',name:currentUser.name,score:score,correct:correct,total:questions.length,pass:pass,wrongQuestions:wrong,date:new Date().toISOString().slice(0,10),ts:Date.now()});
+  }
+  var reviewHTML='';
+  questions.forEach(function(q,i){
+    var a=answers[i], ok=a.chosen===a.correct;
+    reviewHTML+='<div style="background:'+(ok?'#EAF3DE':'#FCEBEB')+';border-radius:14px;padding:14px;margin-bottom:10px;border-left:4px solid '+(ok?'#3B6D11':'#A32D2D')+'">';
+    reviewHTML+='<div style="font-size:13px;font-weight:700;color:#1a2340;margin-bottom:8px;">'+(i+1)+'. '+q.q+'</div>';
+    q.opts.forEach(function(opt,oi){
+      var isRight=oi===q.ans, isMine=oi===a.chosen;
+      reviewHTML+='<div style="font-size:12px;color:'+(isRight?'#3B6D11':isMine&&!isRight?'#A32D2D':'#8a95a8')+';padding:2px 0;font-weight:'+(isRight?'700':'400')+'">'+['A','B','C','D'][oi]+'. '+opt+(isRight?' ✅':isMine&&!isRight?' ❌':'')+'</div>';
+    });
+    reviewHTML+='<div style="font-size:11px;color:#185FA5;margin-top:8px;padding-top:8px;border-top:1px solid rgba(0,0,0,0.1);">💡 '+q.exp+'</div></div>';
   });
+  document.getElementById('exam-body').innerHTML=
+    '<div class="score-card"><div class="score-num">'+score+'</div><div class="score-label">'+correct+'/'+questions.length+' 題正確 · '+(pass?'🎉 及格':'😢 未及格')+'</div><div style="color:rgba(255,255,255,.8);font-size:13px;margin-top:8px;">'+currentUser.name+'</div></div>'+
+    '<div class="card"><h3>📋 答題解析</h3>'+reviewHTML+'</div>';
 }
 
-async function saveTranscript(){
-  var text = document.getElementById('transcript-text').textContent;
-  if(!text || text==='錄音後自動顯示逐字稿...'){ showToast('沒有內容可儲存'); return; }
-  await db.collection('sbr_training').doc('material_current').set({text:text, img:'', savedBy:currentUser.name, ts:Date.now()});
-  showToast('✅ 已儲存為教材');
-}
-
-
-// ══════════════════════════════
-// ════ 成績統計 ════
-// ══════════════════════════════
-var statsListener = null;
+// ── 成績後台 ──
+var statsUnsub=null;
 function loadStats(){
-  if(statsListener) statsListener();
-  var dateStr = new Date().toISOString().slice(0,10);
-
-  // 即時監聽簽到人數
-  db.collection('sbr_training').where('date','==',dateStr).onSnapshot(function(snap){
-    var signCount=0;
-    snap.forEach(function(d){ if(!d.data().type) signCount++; });
-    document.getElementById('stat-sign').textContent = signCount;
-  });
-
-  // 即時監聽考試成績
-  statsListener = db.collection('sbr_training').where('type','==','exam').orderBy('ts','desc').onSnapshot(function(examSnap){
-    var list = document.getElementById('result-list');
-    if(examSnap.empty){
-      list.innerHTML='<div style="text-align:center;color:#aaa;padding:20px;">尚無考試紀錄</div>';
-      document.getElementById('stat-total').textContent=0;
-      document.getElementById('stat-avg').textContent='-';
-      document.getElementById('stat-pass').textContent=0;
-      return;
+  if(statsUnsub) statsUnsub();
+  statsUnsub=db.collection('sbr_training').where('type','==','exam').orderBy('ts','desc').onSnapshot(function(snap){
+    if(snap.empty){
+      document.getElementById('result-list').innerHTML='<div style="text-align:center;color:#aaa;padding:20px;">尚無考試紀錄</div>';
+      ['stat-total','stat-avg','stat-pass','stat-rate'].forEach(function(id){ document.getElementById(id).textContent='-'; });
+      document.getElementById('analysis-wrap').style.display='none'; return;
     }
-    var total=0, sumScore=0, passCount=0;
-    list.innerHTML='';
-    examSnap.forEach(function(d){
-      var r=d.data();
-      total++; sumScore+=r.score; if(r.pass) passCount++;
-      var item=document.createElement('div');
-      item.className='result-item';
-      item.innerHTML='<div class="r-name">'+r.name+'</div><div class="r-score">'+r.score+'</div><span class="r-grade '+(r.pass?'grade-pass':'grade-fail')+'">'+(r.pass?'及格':'未及格')+'</span>';
+    var total=0,sum=0,pass=0,wrongCount={};
+    var list=document.getElementById('result-list'); list.innerHTML='';
+    snap.forEach(function(d){
+      var r=d.data(); total++; sum+=r.score; if(r.pass) pass++;
+      if(r.wrongQuestions) r.wrongQuestions.forEach(function(q){ wrongCount[q]=(wrongCount[q]||0)+1; });
+      var item=document.createElement('div'); item.className='result-item';
+      item.innerHTML='<div class="r-name">'+r.name+'<div style="font-size:11px;color:#aaa;font-weight:400;">'+r.date+'</div></div>'+
+        '<div class="r-score">'+r.score+'</div><span class="r-grade '+(r.pass?'grade-pass':'grade-fail')+'">'+(r.pass?'及格':'未及格')+'</span>';
       list.appendChild(item);
     });
     document.getElementById('stat-total').textContent=total;
-    document.getElementById('stat-avg').textContent=Math.round(sumScore/total);
-    document.getElementById('stat-pass').textContent=passCount;
+    document.getElementById('stat-avg').textContent=Math.round(sum/total);
+    document.getElementById('stat-pass').textContent=pass;
+    document.getElementById('stat-rate').textContent=Math.round(pass/total*100)+'%';
+    var arr=Object.keys(wrongCount).map(function(k){ return {q:parseInt(k),count:wrongCount[k]}; }).sort(function(a,b){ return b.count-a.count; });
+    if(arr.length){
+      var aw=document.getElementById('analysis-wrap'), ab=document.getElementById('analysis-body');
+      aw.style.display='block'; ab.innerHTML='';
+      arr.slice(0,5).forEach(function(w){
+        var pct=Math.round(w.count/total*100);
+        var row=document.createElement('div');
+        row.style.cssText='display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f0f4f8;';
+        row.innerHTML='<div style="font-size:13px;color:#1a2340;flex:1;">第 '+w.q+' 題</div>'+
+          '<div style="flex:2;background:#e8edf5;border-radius:4px;height:8px;"><div style="width:'+pct+'%;height:8px;background:#E24B4A;border-radius:4px;"></div></div>'+
+          '<div style="font-size:12px;color:#A32D2D;font-weight:700;min-width:44px;text-align:right;">'+w.count+'人錯</div>';
+        ab.appendChild(row);
+      });
+    }
   });
 }
 
-// ════ QR碼（管理員用）════
-function showQR(){
-  const url = window.location.href;
-  const win = window.open('','_blank','width=360,height=420');
-  win.document.write(`<html><body style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;background:#0C3A6B;font-family:sans-serif;color:white;gap:16px;"><div style="background:white;padding:16px;border-radius:16px;" id="qr"></div><div style="font-size:14px;">掃碼進入系統</div><script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script><script>new QRCode(document.getElementById('qr'),{text:'${url}',width:200,height:200});<\/script></body></html>`);
+function clearStats(){
+  if(!confirm('確定清除所有考試紀錄？')) return;
+  db.collection('sbr_training').where('type','==','exam').get().then(function(snap){
+    var batch=db.batch();
+    snap.forEach(function(d){ batch.delete(d.ref); });
+    return batch.commit();
+  }).then(function(){ showToast('✅ 已清除紀錄'); });
 }
 </script>
 </body>
