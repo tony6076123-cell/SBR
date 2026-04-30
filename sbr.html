@@ -390,17 +390,26 @@ textarea.material-input:focus{outline:none;border-color:#185FA5;}
     <h2>🎤 語音備課</h2>
   </div>
   <div class="page-body">
+    <!-- 錄音區 -->
     <div class="voice-status">
       <button class="mic-btn" id="mic-btn" onclick="toggleRecording()">🎤</button>
       <div id="mic-status" style="font-size:14px;font-weight:600;color:#1a2340;">點擊開始錄音</div>
       <div style="font-size:12px;color:#8a95a8;margin-top:4px;">支援手機與電腦</div>
     </div>
-    <div class="transcript-box">
+    <!-- 逐字稿 -->
+    <div class="transcript-box" style="margin-bottom:14px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
         <span style="font-size:14px;font-weight:700;color:#185FA5;">逐字稿</span>
         <button class="btn-secondary" onclick="saveTranscript()" style="padding:6px 14px;font-size:12px;border-radius:8px;">儲存為教材</button>
       </div>
       <div class="transcript-text" id="transcript-text">錄音後自動顯示逐字稿...</div>
+    </div>
+    <!-- 教學圖片 6 張 -->
+    <div style="background:#fff;border-radius:20px;padding:16px;box-shadow:0 2px 12px rgba(0,0,0,0.06);">
+      <div style="font-size:14px;font-weight:700;color:#185FA5;margin-bottom:12px;">📸 教學圖片（6張）</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;" id="voice-img-grid">
+        <!-- 由 JS 生成 -->
+      </div>
     </div>
   </div>
 </div>
@@ -455,27 +464,59 @@ textarea.material-input:focus{outline:none;border-color:#185FA5;}
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script>
 // ════ 設定 ════
-var NAMES = ['宗海','阿明','志偉','俊傑','建宏','文彥','裕翔','家豪','冠廷','鈞翔','宛臻','淑芬'];
+// 永康廠 + 歸仁廠 學員姓名（排除技術長蘇博仁）
+var NAMES = [
+  // 永康鈑金組
+  '楊家豪','葉昶廷','邱中韋','蔡松益','王耀彬',
+  // 永康修護組
+  '謝福志','陳重佑','陳昱傑','陳文青','許韶剛',
+  '邱柏誠','林建男','楊晉嘉','林智瑋','梁仲旻',
+  '黃昱愷','黃國偉','吳聘訪','穆冠忡','李慶珍',
+  '宋偉祥','蘇晋賢','李右淋','孫志文','鄭龍祥',
+  '林佳楓','周明勳','蘇紹惟','蔡名龍',
+  // 永康接待組
+  '孫煜展','李俊輝','黃詩詠','張家銓','宋秉霖','蘇柏豪','劉倍源',
+  // 歸仁修護組
+  '黃冠榮','蔡裕全','吳晏丞','莊祁穎','鄭佳勝','張翔政','李章愷','林功源','黃武正','黃登龍',
+  // 歸仁接待組
+  '吳典松','薛承恩','林士勛'
+];
 var TECH_PW = '1234';
 var ADMIN_PW = '9999';
-var firebaseConfig={
-  apiKey:"AIzaSyCoeBRe_i2njEyDI0FPv9HXEGNxBb6eqg8",
-  authDomain:"yongkank-63703.firebaseapp.com",
-  projectId:"yongkank-63703",
-  storageBucket:"yongkank-63703.firebasestorage.app",
-  messagingSenderId:"353225693174",
-  appId:"1:353225693174:web:3d70fafa51e3ab8c0219d7"
-};
-firebase.initializeApp(firebaseConfig);
-var db = firebase.firestore();
 
+// 語音備課圖片（技術長教學用）
+var VOICE_IMAGES = [
+  {title:'SBR 工法步驟 1', url:''},
+  {title:'SBR 工法步驟 2', url:''},
+  {title:'SBR 工法步驟 3', url:''},
+  {title:'SBR 工法步驟 4', url:''},
+  {title:'SBR 工法步驟 5', url:''},
+  {title:'SBR 工法步驟 6', url:''},
+];
+
+var db = null;
 var currentUser = {name:'', role:'trainee'};
 var questions = [], currentQ = 0, answers = [], examDone = false;
 var sigCanvas, sigCtx, isSigning = false, sigLastX, sigLastY;
 var mediaRecognition = null, isRecording = false, fullTranscript = '';
 
-// ════ 登入頁初始化 ════
-document.addEventListener('DOMContentLoaded', function(){
+// ════ 啟動（等所有腳本載入完再執行）════
+window.addEventListener('load', function(){
+  // Firebase 初始化
+  var firebaseConfig={
+    apiKey:"AIzaSyCoeBRe_i2njEyDI0FPv9HXEGNxBb6eqg8",
+    authDomain:"yongkank-63703.firebaseapp.com",
+    projectId:"yongkank-63703",
+    storageBucket:"yongkank-63703.firebasestorage.app",
+    messagingSenderId:"353225693174",
+    appId:"1:353225693174:web:3d70fafa51e3ab8c0219d7"
+  };
+  try {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+  } catch(e) { console.warn('Firebase 初始化失敗:', e); }
+
+  // 建立登入姓名按鈕
   var grid = document.getElementById('name-grid');
   NAMES.forEach(function(n){
     var b = document.createElement('button');
@@ -533,14 +574,15 @@ var MENUS = {
   ],
 };
 function buildMenu(){
-  const grid = document.getElementById('menu-grid');
+  var grid = document.getElementById('menu-grid');
   grid.innerHTML = '';
-  const list = MENUS[currentUser.role] || MENUS.trainee;
-  list.forEach(m => {
-    const d = document.createElement('div');
+  var role = (currentUser && currentUser.role) ? currentUser.role : 'trainee';
+  var list = MENUS[role] || MENUS['trainee'];
+  list.forEach(function(m){
+    var d = document.createElement('div');
     d.className = 'menu-card' + (m.wide?' wide':'');
-    d.innerHTML = `<div class="card-icon ${m.bg}">${m.icon}</div><div class="card-label">${m.label}</div><div class="card-desc">${m.desc}</div>`;
-    d.onclick = () => m.action ? window[m.action]() : openPage(m.page);
+    d.innerHTML = '<div class="card-icon '+m.bg+'">'+m.icon+'</div><div class="card-label">'+m.label+'</div><div class="card-desc">'+m.desc+'</div>';
+    d.onclick = (function(mi){ return function(){ mi.action ? window[mi.action]() : openPage(mi.page); }; })(m);
     grid.appendChild(d);
   });
 }
@@ -554,6 +596,7 @@ function openPage(id){
   if(id==='page-material') loadMaterial();
   if(id==='page-stats') loadStats();
   if(id==='page-exam') resetExam();
+  if(id==='page-voice'){ initVoiceImages(); startTranscriptListener(); }
 }
 
 // ════ Toast ════
@@ -595,25 +638,45 @@ async function submitSig(){
   });
   showToast('✅ 簽到成功！');
   clearSig();
-  loadSignList();
 }
-async function loadSignList(){
-  const dateStr = new Date().toISOString().slice(0,10);
-  const snap = await db.collection('sbr_training').where('date','==',dateStr).orderBy('ts').get();
-  const list = document.getElementById('sign-list');
-  const wrap = document.getElementById('sign-list-wrap');
-  const count = document.getElementById('sign-count');
-  if(snap.empty){ wrap.style.display='none'; return; }
-  wrap.style.display='block';
-  list.innerHTML='';
-  count.textContent = `共 ${snap.size} 人`;
-  snap.forEach(d=>{
-    const data=d.data();
-    const item=document.createElement('div');
-    item.className='sign-item';
-    item.innerHTML=`<div class="s-name">${data.name}</div><div class="s-time">${data.time}</div><span class="sign-badge">已簽到</span>`;
-    list.appendChild(item);
-  });
+
+// 即時監聽簽到（手機簽到→電腦自動更新）
+var signListener = null;
+function loadSignList(){
+  if(signListener) signListener(); // 取消舊監聽
+  var dateStr = new Date().toISOString().slice(0,10);
+  var list = document.getElementById('sign-list');
+  var wrap = document.getElementById('sign-list-wrap');
+  var count = document.getElementById('sign-count');
+  signListener = db.collection('sbr_training')
+    .where('date','==',dateStr)
+    .orderBy('ts')
+    .onSnapshot(function(snap){
+      if(snap.empty){ wrap.style.display='none'; return; }
+      wrap.style.display='block';
+      list.innerHTML='';
+      count.textContent = '共 '+snap.size+' 人';
+      snap.forEach(function(d){
+        var data=d.data();
+        var item=document.createElement('div');
+        item.className='sign-item';
+        item.style.flexDirection='column';
+        item.style.alignItems='flex-start';
+        item.style.gap='8px';
+        var top = document.createElement('div');
+        top.style.cssText='display:flex;align-items:center;gap:12px;width:100%;';
+        top.innerHTML='<div class="s-name">'+data.name+'</div><div class="s-time">'+data.time+'</div><span class="sign-badge">已簽到</span>';
+        item.appendChild(top);
+        // 顯示手寫圖片
+        if(data.sig){
+          var img=document.createElement('img');
+          img.src=data.sig;
+          img.style.cssText='width:100%;max-height:60px;object-fit:contain;border-radius:8px;background:#f8faff;border:1px solid #e8edf5;';
+          item.appendChild(img);
+        }
+        list.appendChild(item);
+      });
+    });
 }
 
 // ══════════════════════════════
@@ -745,70 +808,149 @@ async function showScore(){
 function toggleRecording(){
   if(isRecording) stopRecording(); else startRecording();
 }
+function initVoiceImages(){
+  var grid = document.getElementById('voice-img-grid');
+  if(!grid) return;
+  grid.innerHTML = '';
+  for(var i=0; i<6; i++){
+    (function(idx){
+      var slot = document.createElement('div');
+      slot.style.cssText = 'background:#f8faff;border-radius:14px;border:2px dashed #d0d9e8;min-height:100px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative;';
+      var imgEl = document.createElement('img');
+      imgEl.style.cssText = 'width:100%;height:100%;object-fit:cover;display:none;border-radius:12px;';
+      var label = document.createElement('div');
+      label.style.cssText = 'font-size:11px;color:#8a95a8;text-align:center;padding:8px;';
+      label.textContent = '步驟 '+(idx+1)+'\n點擊上傳圖片';
+      var inp = document.createElement('input');
+      inp.type='file'; inp.accept='image/*'; inp.style.display='none';
+      inp.onchange = function(){
+        var file = inp.files[0]; if(!file) return;
+        var reader = new FileReader();
+        reader.onload = function(e){
+          imgEl.src = e.target.result;
+          imgEl.style.display='block';
+          label.style.display='none';
+          // 存到 Firebase
+          if(db) db.collection('sbr_training').doc('voice_img_'+idx).set({img:e.target.result, ts:Date.now()});
+        };
+        reader.readAsDataURL(file);
+      };
+      slot.onclick = function(){ inp.click(); };
+      slot.appendChild(imgEl);
+      slot.appendChild(label);
+      slot.appendChild(inp);
+      // 讀取已存圖片
+      if(db){
+        db.collection('sbr_training').doc('voice_img_'+idx).get().then(function(snap){
+          if(snap.exists && snap.data().img){ imgEl.src=snap.data().img; imgEl.style.display='block'; label.style.display='none'; }
+        });
+      }
+      grid.appendChild(slot);
+    })(i);
+  }
+}
 function startRecording(){
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if(!SpeechRecognition){ showToast('此瀏覽器不支援語音辨識'); return; }
   mediaRecognition = new SpeechRecognition();
   mediaRecognition.lang = 'zh-TW';
   mediaRecognition.continuous = true;
   mediaRecognition.interimResults = true;
-  fullTranscript = document.getElementById('transcript-text').textContent==='錄音後自動顯示逐字稿...' ? '' : document.getElementById('transcript-text').textContent;
-  mediaRecognition.onresult = e => {
-    let interim='';
-    for(let i=e.resultIndex;i<e.results.length;i++){
-      if(e.results[i].isFinal) fullTranscript+=e.results[i][0].transcript;
-      else interim=e.results[i][0].transcript;
+  var el = document.getElementById('transcript-text');
+  fullTranscript = (el.textContent === '錄音後自動顯示逐字稿...') ? '' : el.textContent;
+  var saveTimer = null;
+  mediaRecognition.onresult = function(e){
+    var interim='';
+    for(var i=e.resultIndex;i<e.results.length;i++){
+      if(e.results[i].isFinal) fullTranscript += e.results[i][0].transcript;
+      else interim = e.results[i][0].transcript;
     }
-    document.getElementById('transcript-text').textContent = fullTranscript + interim;
+    el.textContent = fullTranscript + interim;
+    // 每3秒寫入 Firebase 一次（節省費用）
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(function(){
+      if(db && fullTranscript) db.collection('sbr_training').doc('transcript_live').set({text: fullTranscript, ts: Date.now()});
+    }, 3000);
   };
-  mediaRecognition.onerror = e => { showToast('語音錯誤：'+e.error); stopRecording(); };
+  mediaRecognition.onerror = function(e){ showToast('語音錯誤：'+e.error); stopRecording(); };
   mediaRecognition.start();
-  isRecording=true;
+  isRecording = true;
   document.getElementById('mic-btn').classList.add('recording');
-  document.getElementById('mic-btn').textContent='⏹️';
-  document.getElementById('mic-status').textContent='錄音中...';
+  document.getElementById('mic-btn').textContent = '⏹️';
+  document.getElementById('mic-status').textContent = '錄音中...';
+  // 開始監聽（電腦端自動更新）
+  startTranscriptListener();
 }
 function stopRecording(){
   if(mediaRecognition){ mediaRecognition.stop(); mediaRecognition=null; }
-  isRecording=false;
+  // 停止時存最終版本
+  if(db && fullTranscript) db.collection('sbr_training').doc('transcript_live').set({text: fullTranscript, ts: Date.now()});
+  isRecording = false;
   document.getElementById('mic-btn').classList.remove('recording');
-  document.getElementById('mic-btn').textContent='🎤';
-  document.getElementById('mic-status').textContent='點擊開始錄音';
+  document.getElementById('mic-btn').textContent = '🎤';
+  document.getElementById('mic-status').textContent = '點擊開始錄音';
 }
+
+// 電腦端即時監聽逐字稿
+var transcriptListener = null;
+function startTranscriptListener(){
+  if(transcriptListener) return; // 已在監聽中
+  transcriptListener = db.collection('sbr_training').doc('transcript_live').onSnapshot(function(snap){
+    if(!snap.exists) return;
+    var el = document.getElementById('transcript-text');
+    if(el && !isRecording){ // 電腦端（非錄音方）才更新
+      el.textContent = snap.data().text || '';
+    }
+  });
+}
+
 async function saveTranscript(){
-  const text = document.getElementById('transcript-text').textContent;
+  var text = document.getElementById('transcript-text').textContent;
   if(!text || text==='錄音後自動顯示逐字稿...'){ showToast('沒有內容可儲存'); return; }
-  await db.collection('sbr_training').doc('material_current').set({text, img:'', savedBy:currentUser.name, ts:Date.now()});
+  await db.collection('sbr_training').doc('material_current').set({text:text, img:'', savedBy:currentUser.name, ts:Date.now()});
   showToast('✅ 已儲存為教材');
 }
+
 
 // ══════════════════════════════
 // ════ 成績統計 ════
 // ══════════════════════════════
-async function loadStats(){
-  const dateStr = new Date().toISOString().slice(0,10);
-  // 簽到
-  const signSnap = await db.collection('sbr_training').where('date','==',dateStr).get();
-  let signCount=0;
-  signSnap.forEach(d=>{ if(!d.data().type) signCount++; });
-  document.getElementById('stat-sign').textContent = signCount;
-  // 考試成績
-  const examSnap = await db.collection('sbr_training').where('type','==','exam').orderBy('ts','desc').get();
-  const list = document.getElementById('result-list');
-  if(examSnap.empty){ list.innerHTML='<div style="text-align:center;color:#aaa;padding:20px;">尚無考試紀錄</div>'; document.getElementById('stat-total').textContent=0; document.getElementById('stat-avg').textContent='-'; document.getElementById('stat-pass').textContent=0; return; }
-  let total=0, sumScore=0, passCount=0;
-  list.innerHTML='';
-  examSnap.forEach(d=>{
-    const r=d.data();
-    total++; sumScore+=r.score; if(r.pass) passCount++;
-    const item=document.createElement('div');
-    item.className='result-item';
-    item.innerHTML=`<div class="r-name">${r.name}</div><div class="r-score">${r.score}</div><span class="r-grade ${r.pass?'grade-pass':'grade-fail'}">${r.pass?'及格':'未及格'}</span>`;
-    list.appendChild(item);
+var statsListener = null;
+function loadStats(){
+  if(statsListener) statsListener();
+  var dateStr = new Date().toISOString().slice(0,10);
+
+  // 即時監聽簽到人數
+  db.collection('sbr_training').where('date','==',dateStr).onSnapshot(function(snap){
+    var signCount=0;
+    snap.forEach(function(d){ if(!d.data().type) signCount++; });
+    document.getElementById('stat-sign').textContent = signCount;
   });
-  document.getElementById('stat-total').textContent=total;
-  document.getElementById('stat-avg').textContent=Math.round(sumScore/total);
-  document.getElementById('stat-pass').textContent=passCount;
+
+  // 即時監聽考試成績
+  statsListener = db.collection('sbr_training').where('type','==','exam').orderBy('ts','desc').onSnapshot(function(examSnap){
+    var list = document.getElementById('result-list');
+    if(examSnap.empty){
+      list.innerHTML='<div style="text-align:center;color:#aaa;padding:20px;">尚無考試紀錄</div>';
+      document.getElementById('stat-total').textContent=0;
+      document.getElementById('stat-avg').textContent='-';
+      document.getElementById('stat-pass').textContent=0;
+      return;
+    }
+    var total=0, sumScore=0, passCount=0;
+    list.innerHTML='';
+    examSnap.forEach(function(d){
+      var r=d.data();
+      total++; sumScore+=r.score; if(r.pass) passCount++;
+      var item=document.createElement('div');
+      item.className='result-item';
+      item.innerHTML='<div class="r-name">'+r.name+'</div><div class="r-score">'+r.score+'</div><span class="r-grade '+(r.pass?'grade-pass':'grade-fail')+'">'+(r.pass?'及格':'未及格')+'</span>';
+      list.appendChild(item);
+    });
+    document.getElementById('stat-total').textContent=total;
+    document.getElementById('stat-avg').textContent=Math.round(sumScore/total);
+    document.getElementById('stat-pass').textContent=passCount;
+  });
 }
 
 // ════ QR碼（管理員用）════
