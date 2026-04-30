@@ -349,18 +349,34 @@ textarea.material-input:focus{outline:none;border-color:#185FA5;}
     <h2>📖 學習教材</h2>
   </div>
   <div class="page-body">
+    <!-- 技術長輸入區 -->
     <div class="material-card" id="material-tech-input" style="display:none;">
-      <h3>輸入教材內容</h3>
-      <textarea class="material-input" id="material-text" placeholder="輸入課程內容（文字或圖片說明）..."></textarea>
+      <h3>建立課程教材</h3>
+      <input type="text" id="material-title" placeholder="課程標題（例：SBR工法第一講）"
+        style="width:100%;padding:12px;border-radius:12px;border:1.5px solid #d0d9e8;font-size:15px;font-weight:700;margin-bottom:10px;font-family:'Noto Sans TC',sans-serif;">
+      <textarea class="material-input" id="material-text" placeholder="輸入課程內容..."></textarea>
       <input type="file" id="material-img" accept="image/*" style="display:none;" onchange="previewImg(this)">
       <img id="material-img-preview" class="img-preview" style="display:none;">
       <div class="btn-row" style="margin-top:10px;">
         <button class="btn-secondary" onclick="document.getElementById('material-img').click()">📷 圖片</button>
-        <button class="btn-primary" onclick="saveMaterial()">💾 儲存教材</button>
+        <button class="btn-primary" onclick="saveMaterial()">💾 儲存 + 產生QR碼</button>
       </div>
     </div>
-    <div class="material-card">
-      <h3>課程內容</h3>
+    <!-- QR 碼顯示區（儲存後出現）-->
+    <div class="material-card" id="material-qr-wrap" style="display:none;text-align:center;">
+      <h3 id="material-qr-title" style="margin-bottom:12px;"></h3>
+      <div id="material-qr-code" style="display:inline-block;background:#fff;padding:12px;border-radius:12px;margin-bottom:12px;"></div>
+      <div style="font-size:12px;color:#8a95a8;margin-bottom:12px;">學員掃描此 QR 碼直接進入考試</div>
+      <button class="btn-secondary" onclick="showCourseList()" style="font-size:13px;">📋 查看所有課程</button>
+    </div>
+    <!-- 課程列表（技術長用）-->
+    <div class="material-card" id="material-course-list" style="display:none;">
+      <h3 style="margin-bottom:12px;">📚 所有課程</h3>
+      <div id="course-list-body"></div>
+    </div>
+    <!-- 學員閱讀區 -->
+    <div class="material-card" id="material-display-wrap">
+      <h3 id="material-display-title" style="color:#185FA5;margin-bottom:12px;"></h3>
       <div class="material-display" id="material-display">載入中...</div>
       <img id="material-display-img" class="img-preview" style="display:none;">
     </div>
@@ -516,6 +532,20 @@ window.addEventListener('load', function(){
     db = firebase.firestore();
   } catch(e) { console.warn('Firebase 初始化失敗:', e); }
 
+  // 檢查 URL 是否帶有課程參數（學員掃 QR 碼進來）
+  var urlParams = new URLSearchParams(window.location.search);
+  var courseParam = urlParams.get('course');
+  if(courseParam){
+    currentCourseId = courseParam;
+    // 在登入姓名按鈕下方加提示
+    var hint = document.createElement('div');
+    hint.style.cssText = 'margin-top:12px;padding:10px 14px;background:#E6F1FB;border-radius:12px;font-size:13px;color:#0C3A6B;font-weight:600;text-align:center;';
+    hint.textContent = '📝 選擇姓名後直接進入考試';
+    document.getElementById('name-grid').after(hint);
+    // 登入後直接跳考試
+    window.goExamAfterLogin = true;
+  }
+
   // 建立登入姓名按鈕
   var grid = document.getElementById('name-grid');
   NAMES.forEach(function(n){
@@ -528,8 +558,13 @@ window.addEventListener('load', function(){
 });
 
 function loginAsTrainee(name){
-  currentUser = {name, role:'trainee'};
-  enterApp();
+  currentUser = {name:name, role:'trainee'};
+  if(window.goExamAfterLogin){
+    enterApp();
+    setTimeout(function(){ openPage('page-exam'); }, 100);
+  } else {
+    enterApp();
+  }
 }
 function openTechLogin(){ document.getElementById('tech-modal').classList.add('open'); setTimeout(()=>document.getElementById('tech-pw').focus(),100); }
 function closeTechModal(){ document.getElementById('tech-modal').classList.remove('open'); document.getElementById('tech-pw').value=''; }
@@ -682,32 +717,77 @@ function loadSignList(){
 // ══════════════════════════════
 // ════ 教材功能 ════
 // ══════════════════════════════
+var currentCourseId = 'material_current';
+
 async function loadMaterial(){
-  const isTech = currentUser.role==='tech' || currentUser.role==='admin';
-  document.getElementById('material-tech-input').style.display = isTech?'block':'none';
-  const snap = await db.collection('sbr_training').doc('material_current').get();
-  const disp = document.getElementById('material-display');
-  const imgEl = document.getElementById('material-display-img');
+  var isTech = currentUser.role==='tech' || currentUser.role==='admin';
+  document.getElementById('material-tech-input').style.display = isTech ? 'block' : 'none';
+  document.getElementById('material-qr-wrap').style.display = 'none';
+  document.getElementById('material-course-list').style.display = 'none';
+  var snap = await db.collection('sbr_training').doc(currentCourseId).get();
+  var disp = document.getElementById('material-display');
+  var titleEl = document.getElementById('material-display-title');
+  var imgEl = document.getElementById('material-display-img');
   if(snap.exists){
-    const d = snap.data();
+    var d = snap.data();
+    titleEl.textContent = d.title || '課程內容';
     disp.textContent = d.text || '（無文字內容）';
     if(d.img){ imgEl.src=d.img; imgEl.style.display='block'; }
     else imgEl.style.display='none';
-  } else { disp.textContent='尚無教材內容'; }
+    if(isTech){
+      document.getElementById('material-title').value = d.title || '';
+      document.getElementById('material-text').value = d.text || '';
+    }
+  } else { titleEl.textContent=''; disp.textContent='尚無教材內容'; }
 }
 function previewImg(input){
-  const file=input.files[0]; if(!file) return;
-  const reader=new FileReader();
-  reader.onload=e=>{ const img=document.getElementById('material-img-preview'); img.src=e.target.result; img.style.display='block'; };
+  var file=input.files[0]; if(!file) return;
+  var reader=new FileReader();
+  reader.onload=function(e){ var img=document.getElementById('material-img-preview'); img.src=e.target.result; img.style.display='block'; };
   reader.readAsDataURL(file);
 }
 async function saveMaterial(){
-  const text = document.getElementById('material-text').value;
-  const imgEl = document.getElementById('material-img-preview');
-  const img = imgEl.style.display!=='none' ? imgEl.src : '';
-  await db.collection('sbr_training').doc('material_current').set({text, img, savedBy:currentUser.name, ts:Date.now()});
-  showToast('✅ 教材已儲存');
+  var title = document.getElementById('material-title').value.trim();
+  var text = document.getElementById('material-text').value.trim();
+  if(!title){ showToast('請輸入課程標題'); return; }
+  if(!text){ showToast('請輸入課程內容'); return; }
+  var courseId = 'course_' + title.replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g,'_');
+  currentCourseId = courseId;
+  var imgEl = document.getElementById('material-img-preview');
+  var img = imgEl.style.display!=='none' ? imgEl.src : '';
+  await db.collection('sbr_training').doc(courseId).set({
+    title:title, text:text, img:img, savedBy:currentUser.name, ts:Date.now(), type:'material'
+  });
+  showToast('✅ 課程已儲存');
+  showCourseQR(courseId, title);
   loadMaterial();
+}
+function showCourseQR(courseId, title){
+  var wrap = document.getElementById('material-qr-wrap');
+  var qrDiv = document.getElementById('material-qr-code');
+  document.getElementById('material-qr-title').textContent = '📌 ' + title;
+  qrDiv.innerHTML = '';
+  wrap.style.display = 'block';
+  var url = window.location.origin + window.location.pathname + '?course=' + encodeURIComponent(courseId);
+  new QRCode(qrDiv, {text:url, width:160, height:160});
+}
+async function showCourseList(){
+  var listWrap = document.getElementById('material-course-list');
+  var listBody = document.getElementById('course-list-body');
+  listWrap.style.display = 'block';
+  listBody.innerHTML = '<div style="color:#aaa;font-size:13px;">載入中...</div>';
+  var snap = await db.collection('sbr_training').where('type','==','material').orderBy('ts','desc').get();
+  if(snap.empty){ listBody.innerHTML='<div style="color:#aaa;font-size:13px;">尚無課程</div>'; return; }
+  listBody.innerHTML = '';
+  snap.forEach(function(d){
+    var data = d.data();
+    var row = document.createElement('div');
+    row.style.cssText = 'padding:12px;background:#f8faff;border-radius:12px;margin-bottom:8px;cursor:pointer;border:1.5px solid #e8edf5;';
+    row.innerHTML = '<div style="font-size:14px;font-weight:700;color:#0C3A6B;">'+data.title+'</div>'
+      +'<div style="font-size:11px;color:#8a95a8;margin-top:4px;">'+new Date(data.ts).toLocaleString('zh-TW')+'</div>';
+    row.onclick = function(){ currentCourseId=d.id; showCourseQR(d.id,data.title); loadMaterial(); };
+    listBody.appendChild(row);
+  });
 }
 
 // ══════════════════════════════
@@ -726,8 +806,8 @@ function resetExam(){
 async function startExam(){
   const body = document.getElementById('exam-body');
   body.innerHTML='<div class="quiz-card" style="text-align:center;padding:40px 20px;"><div style="font-size:32px;margin-bottom:12px;">⏳</div><div style="font-size:15px;color:#8a95a8;">AI 正在生成題目...</div></div>';
-  // 讀取教材
-  const snap = await db.collection('sbr_training').doc('material_current').get();
+  // 讀取教材（依目前課程ID）
+  const snap = await db.collection('sbr_training').doc(currentCourseId).get();
   const material = snap.exists ? (snap.data().text || '') : '';
   if(!material){ body.innerHTML='<div class="quiz-card" style="text-align:center;padding:32px;"><div style="font-size:15px;color:#A32D2D;">請先輸入教材內容</div></div>'; return; }
   // 呼叫 Claude API 出題
@@ -785,21 +865,42 @@ function selectAns(idx){
   }, 1800);
 }
 async function showScore(){
-  const correct = answers.filter((a,i)=>a===questions[i].ans).length;
-  const score = Math.round(correct/questions.length*100);
-  const pass = score>=60;
-  await db.collection('sbr_training').add({
-    type:'exam', name:currentUser.name, score, correct, total:questions.length,
-    pass, date:new Date().toISOString().slice(0,10), ts:Date.now()
+  var correct = answers.filter(function(a,i){ return a===questions[i].ans; }).length;
+  var score = Math.round(correct/questions.length*100);
+  var pass = score>=60;
+  if(db) await db.collection('sbr_training').add({
+    type:'exam', name:currentUser.name, score:score, correct:correct, total:questions.length,
+    pass:pass, date:new Date().toISOString().slice(0,10), ts:Date.now()
   });
-  document.getElementById('exam-body').innerHTML=`
-    <div class="score-card">
-      <div class="score-num">${score}</div>
-      <div class="score-label">${correct}/${questions.length} 題正確 · ${pass?'🎉 及格':'😢 未及格'}</div>
-    </div>
-    <div class="quiz-card" style="text-align:center;">
-      <button class="btn-primary" onclick="startExam()">重新測驗</button>
-    </div>`;
+
+  // 建立完整答案列表 HTML
+  var answerHTML = '';
+  questions.forEach(function(q, i){
+    var myAns = answers[i];
+    var isCorrect = myAns === q.ans;
+    answerHTML += '<div style="background:'+(isCorrect?'#EAF3DE':'#FCEBEB')+';border-radius:14px;padding:14px;margin-bottom:10px;border-left:4px solid '+(isCorrect?'#3B6D11':'#A32D2D')+'">';
+    answerHTML += '<div style="font-size:13px;font-weight:700;color:#1a2340;margin-bottom:8px;">'+(i+1)+'. '+q.q+'</div>';
+    q.opts.forEach(function(opt, oi){
+      var isRight = oi === q.ans;
+      var isMine = oi === myAns;
+      var color = isRight ? '#3B6D11' : (isMine && !isRight ? '#A32D2D' : '#8a95a8');
+      var mark = isRight ? ' ✅' : (isMine && !isRight ? ' ❌' : '');
+      answerHTML += '<div style="font-size:12px;color:'+color+';padding:3px 0;font-weight:'+(isRight?'700':'400')+'">'+['A','B','C','D'][oi]+'. '+opt+mark+'</div>';
+    });
+    answerHTML += '<div style="font-size:11px;color:#185FA5;margin-top:8px;padding-top:8px;border-top:1px solid rgba(0,0,0,0.08);">💡 '+q.exp+'</div>';
+    answerHTML += '</div>';
+  });
+
+  document.getElementById('exam-body').innerHTML =
+    '<div class="score-card" style="margin-bottom:14px;">' +
+      '<div class="score-num">'+score+'</div>' +
+      '<div class="score-label">'+correct+'/'+questions.length+' 題正確 · '+(pass?'🎉 及格':'😢 未及格')+'</div>' +
+    '</div>' +
+    '<div class="quiz-card" style="margin-bottom:14px;">' +
+      '<div style="font-size:15px;font-weight:700;color:#185FA5;margin-bottom:14px;">📋 完整答案解析</div>' +
+      answerHTML +
+      '<button class="btn-primary" onclick="startExam()" style="margin-top:8px;">🔄 重新測驗</button>' +
+    '</div>';
 }
 
 // ══════════════════════════════
@@ -815,34 +916,83 @@ function initVoiceImages(){
   for(var i=0; i<6; i++){
     (function(idx){
       var slot = document.createElement('div');
-      slot.style.cssText = 'background:#f8faff;border-radius:14px;border:2px dashed #d0d9e8;min-height:100px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative;';
+      slot.style.cssText = 'background:#f8faff;border-radius:14px;border:2px dashed #d0d9e8;min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;position:relative;';
+
+      // 圖片顯示
       var imgEl = document.createElement('img');
-      imgEl.style.cssText = 'width:100%;height:100%;object-fit:cover;display:none;border-radius:12px;';
+      imgEl.style.cssText = 'width:100%;height:120px;object-fit:cover;display:none;border-radius:12px;';
+
+      // 步驟標籤
       var label = document.createElement('div');
-      label.style.cssText = 'font-size:11px;color:#8a95a8;text-align:center;padding:8px;';
-      label.textContent = '步驟 '+(idx+1)+'\n點擊上傳圖片';
-      var inp = document.createElement('input');
-      inp.type='file'; inp.accept='image/*'; inp.style.display='none';
-      inp.onchange = function(){
-        var file = inp.files[0]; if(!file) return;
+      label.style.cssText = 'font-size:13px;font-weight:700;color:#185FA5;margin-bottom:8px;';
+      label.textContent = '步驟 '+(idx+1);
+
+      // 兩個按鈕：拍照 + 上傳
+      var btnRow = document.createElement('div');
+      btnRow.style.cssText = 'display:flex;gap:6px;';
+
+      // 📷 拍照按鈕（手機直接開相機）
+      var inpCamera = document.createElement('input');
+      inpCamera.type='file'; inpCamera.accept='image/*'; inpCamera.capture='environment'; inpCamera.style.display='none';
+
+      var btnCamera = document.createElement('button');
+      btnCamera.textContent = '📷 拍照';
+      btnCamera.style.cssText = 'padding:7px 12px;border-radius:10px;background:#185FA5;color:#fff;border:none;font-size:12px;font-weight:700;cursor:pointer;';
+      btnCamera.onclick = function(){ inpCamera.click(); };
+
+      // 🖼 上傳按鈕（從相簿選）
+      var inpFile = document.createElement('input');
+      inpFile.type='file'; inpFile.accept='image/*'; inpFile.style.display='none';
+
+      var btnFile = document.createElement('button');
+      btnFile.textContent = '🖼 相簿';
+      btnFile.style.cssText = 'padding:7px 12px;border-radius:10px;background:#f0f4f8;color:#185FA5;border:1px solid #d0d9e8;font-size:12px;font-weight:700;cursor:pointer;';
+      btnFile.onclick = function(){ inpFile.click(); };
+
+      // 刪除按鈕（有圖片時顯示）
+      var btnDel = document.createElement('button');
+      btnDel.textContent = '🗑️';
+      btnDel.style.cssText = 'position:absolute;top:6px;right:6px;padding:4px 8px;border-radius:8px;background:rgba(0,0,0,0.5);color:#fff;border:none;font-size:12px;cursor:pointer;display:none;';
+      btnDel.onclick = function(e){
+        e.stopPropagation();
+        imgEl.style.display='none'; imgEl.src='';
+        label.style.display=''; btnRow.style.display='flex'; btnDel.style.display='none';
+        if(db) db.collection('sbr_training').doc('voice_img_'+idx).delete();
+      };
+
+      function handleFile(file){
+        if(!file) return;
         var reader = new FileReader();
         reader.onload = function(e){
           imgEl.src = e.target.result;
           imgEl.style.display='block';
           label.style.display='none';
-          // 存到 Firebase
-          if(db) db.collection('sbr_training').doc('voice_img_'+idx).set({img:e.target.result, ts:Date.now()});
+          btnRow.style.display='none';
+          btnDel.style.display='block';
+          if(db) db.collection('sbr_training').doc('voice_img_'+idx).set({img:e.target.result, title:'步驟'+(idx+1), ts:Date.now()});
         };
         reader.readAsDataURL(file);
-      };
-      slot.onclick = function(){ inp.click(); };
+      }
+
+      inpCamera.onchange = function(){ handleFile(inpCamera.files[0]); };
+      inpFile.onchange = function(){ handleFile(inpFile.files[0]); };
+
+      btnRow.appendChild(btnCamera);
+      btnRow.appendChild(btnFile);
       slot.appendChild(imgEl);
       slot.appendChild(label);
-      slot.appendChild(inp);
+      slot.appendChild(btnRow);
+      slot.appendChild(btnDel);
+      slot.appendChild(inpCamera);
+      slot.appendChild(inpFile);
+
       // 讀取已存圖片
       if(db){
         db.collection('sbr_training').doc('voice_img_'+idx).get().then(function(snap){
-          if(snap.exists && snap.data().img){ imgEl.src=snap.data().img; imgEl.style.display='block'; label.style.display='none'; }
+          if(snap.exists && snap.data().img){
+            imgEl.src=snap.data().img; imgEl.style.display='block';
+            label.style.display='none'; btnRow.style.display='none'; btnDel.style.display='block';
+          }
         });
       }
       grid.appendChild(slot);
