@@ -131,8 +131,6 @@ textarea:focus{outline:none;border-color:#185FA5;}
 .mirror-qr{text-align:center;}
 .live-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(226,75,74,0.25);border-radius:20px;padding:4px 12px;font-size:12px;color:#ff9090;margin-left:10px;}
 </style>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
@@ -332,6 +330,8 @@ textarea:focus{outline:none;border-color:#185FA5;}
 </div>
 <div id="toast"></div>
 
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script>
 var FACTORY={
   yk:{label:'永康廠',groups:{
@@ -353,17 +353,6 @@ var statsAllData=[], statsFilter='all';
 var statsUnsub=null, myScoreUnsub=null;
 
 window.addEventListener('load',function(){
-  try{
-    firebase.initializeApp({
-      apiKey:"AIzaSyCoeBRe_i2njEyDI0FPv9HXEGNxBb6eqg8",
-      authDomain:"yongkank-63703.firebaseapp.com",
-      projectId:"yongkank-63703",
-      storageBucket:"yongkank-63703.firebasestorage.app",
-      messagingSenderId:"353225693174",
-      appId:"1:353225693174:web:3d70fafa51e3ab8c0219d7"
-    });
-    db=firebase.firestore();
-  }catch(e){ console.error('Firebase error:',e); }
 
   var params=new URLSearchParams(window.location.search);
   if(params.get('exam')==='1'||params.get('session')){
@@ -373,7 +362,29 @@ window.addEventListener('load',function(){
   if(params.get('mirror')==='1'){ openMirrorDirect(); return; }
   switchFactory('yk');
   buildImgGrid();
+  // ★ 頁面載入就開始監聽逐字稿（電腦和手機都即時同步）
+  startTranscriptSync();
 });
+
+var transcriptUnsub=null;
+function startTranscriptSync(){
+  if(!db||transcriptUnsub) return;
+  transcriptUnsub=db.collection('sbr_training').doc('voice_transcript').onSnapshot(function(s){
+    if(!s.exists) return;
+    var data=s.data();
+    // 備課頁的逐字稿框（非錄音中才更新，避免干擾錄音）
+    var el=document.getElementById('transcript-text');
+    if(el&&!isRecording) el.value=data.text||'';
+    // 狀態提示
+    var ms=document.getElementById('mic-status');
+    if(ms&&!isRecording){
+      ms.textContent=data.streaming?'🔴 技術長錄音中...即時同步':'點擊開始錄音';
+    }
+    // stream-badge
+    var sb=document.getElementById('stream-badge');
+    if(sb) sb.style.display=data.streaming?'inline-flex':'none';
+  });
+}
 
 // ══ 廠別 ══
 function switchFactory(f){
