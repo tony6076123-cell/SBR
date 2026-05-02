@@ -171,8 +171,7 @@ textarea:focus{outline:none;border-color:#185FA5;}
     </div>
     <div class="factory-label" id="factory-label">永康廠學員</div>
     <div class="name-grid" id="name-grid"></div>
-    <div class="login-sep">── 技術長 / 管理員 ──</div>
-    <button class="tech-btn" onclick="openTechModal()">🔑 技術長 / 管理員登入</button>
+    <div style="text-align:center;margin-top:8px;"><button onclick="openTechModal()" style="background:none;border:none;color:#d0d9e8;font-size:11px;cursor:pointer;">⚙️ 管理員</button></div>
   </div>
 </div>
 
@@ -382,7 +381,7 @@ window.addEventListener('load',function(){
     db=firebase.firestore();
   }catch(e){}
   var params=new URLSearchParams(window.location.search);
-  if(params.get('session')){ fromQR=true; document.getElementById('qr-hint').style.display='block'; }
+  if(params.get('exam')==='1'||params.get('session')){ fromQR=true; document.getElementById('qr-hint').style.display='block'; }
   if(params.get('mirror')==='1'){ openMirrorDirect(); return; }
   switchFactory('yk');
   buildImgGrid();
@@ -434,6 +433,8 @@ function enterHome(name,role){
   document.getElementById('home-avatar').textContent=name[0];
   document.getElementById('home-role').textContent=role;
   showPage('page-home');
+  // 預先啟動成績監聽
+  loadStats();
 }
 
 // ══ 頁面切換 ══
@@ -482,21 +483,22 @@ function renderExamTab(body){
   if(questions.length>0&&currentQ<questions.length){ renderQuestion(); return; }
   body.innerHTML='<div class="card" style="text-align:center;padding:28px;"><div style="font-size:40px;margin-bottom:12px;">📝</div><div style="font-size:14px;font-weight:700;color:#1a2340;margin-bottom:6px;">線上考試</div><div style="font-size:12px;color:#8a95a8;margin-bottom:18px;">AI 自動出題 10 道選擇題</div><button class="btn-primary" onclick="startExam()">開始考試</button></div>';
 }
-async function renderMyScore(body){
+var myScoreUnsub=null;
+function renderMyScore(body){
   body.innerHTML='<div style="text-align:center;padding:20px;color:#aaa;">載入中...</div>';
-  try{
-    var snap=await db.collection('sbr_training').where('type','==','exam').where('name','==',currentUser.name).orderBy('ts','desc').get();
+  if(myScoreUnsub){ myScoreUnsub(); myScoreUnsub=null; }
+  myScoreUnsub=db.collection('sbr_training').where('type','==','exam').where('name','==',currentUser.name).orderBy('ts','desc').onSnapshot(function(snap){
     if(snap.empty){ body.innerHTML='<div class="card" style="text-align:center;padding:28px;color:#8a95a8;">尚無考試紀錄</div>'; return; }
     var html='<div class="card"><h3>🏆 我的考試紀錄（'+currentUser.name+'）</h3>';
     snap.forEach(function(d){
       var r=d.data();
       html+='<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f0f4f8;">';
-      html+='<div style="flex:1;"><div style="font-size:13px;font-weight:700;color:#1a2340;">'+r.date+'</div><div style="font-size:11px;color:#8a95a8;">'+r.correct+'/'+r.total+' 題正確</div></div>';
+      html+='<div style="flex:1;"><div style="font-size:13px;font-weight:700;color:#1a2340;">'+r.date+'</div><div style="font-size:11px;color:#8a95a8;">'+r.correct+'/'+r.total+' 題正確　'+(r.pass?'':'未及格可重考')+'</div></div>';
       html+='<div style="font-size:18px;font-weight:900;color:#185FA5;">'+r.score+'分</div>';
       html+='<span class="r-grade '+(r.pass?'grade-pass':'grade-fail')+'">'+(r.pass?'及格':'未及格')+'</span></div>';
     });
     body.innerHTML=html+'</div>';
-  }catch(e){ body.innerHTML='<div class="card" style="text-align:center;padding:28px;color:#A32D2D;">載入失敗</div>'; }
+  });
 }
 
 // ══ 語音備課 ══
@@ -697,8 +699,10 @@ async function saveSession(qs){
 }
 function showQRCode(sid){
   var wrap=document.getElementById('qr-wrap'), qrDiv=document.getElementById('qr-code');
+  if(!wrap||!qrDiv) return;
   qrDiv.innerHTML=''; wrap.style.display='block';
-  var url=window.location.origin+window.location.pathname+'?session='+encodeURIComponent(sid);
+  // QR碼連結直接到學員考試頁
+  var url=window.location.origin+window.location.pathname+'?exam=1&session='+encodeURIComponent(sid);
   new QRCode(qrDiv,{text:url,width:170,height:170});
 }
 
@@ -718,8 +722,8 @@ function renderQuestion(){
   var q=questions[currentQ], pct=(currentQ/questions.length*100).toFixed(0);
   document.getElementById('stu-body').innerHTML=
     '<div class="card">'+
-      '<div class="q-progress"><div class="q-bar"><div class="q-bar-fill" style="width:'+pct+'%"></div></div><div class="q-num">'+(currentQ+1)+'/'+questions.length+'</div></div>'+
-      '<div class="q-text">'+escHtml(q.q)+'</div>'+
+      '<div class="q-progress"><div class="q-bar"><div class="q-bar-fill" style="width:'+pct+'%"></div></div><div class="q-num">第 '+(currentQ+1)+' 題 / 共'+questions.length+'題</div></div>'+
+      '<div class="q-text">'+(currentQ+1)+'、'+escHtml(q.q)+'</div>'+
       q.opts.map(function(o,i){ return '<button class="q-opt" onclick="selectAns('+i+')">'+['A','B','C','D'][i]+'. '+escHtml(o)+'</button>'; }).join('')+
       '<div class="answer-hint" id="answer-hint"></div>'+
     '</div>';
@@ -727,11 +731,21 @@ function renderQuestion(){
 function selectAns(idx){
   var q=questions[currentQ];
   answers.push({chosen:idx,correct:q.ans});
-  document.querySelectorAll('.q-opt').forEach(function(o,i){ o.disabled=true; if(i===q.ans) o.classList.add('correct'); else if(i===idx) o.classList.add('wrong'); });
+  document.querySelectorAll('.q-opt').forEach(function(o,i){
+    o.disabled=true;
+    if(i===q.ans) o.classList.add('correct');
+    if(i===idx && idx!==q.ans) o.classList.add('wrong');
+  });
   var hint=document.getElementById('answer-hint');
   hint.style.display='block';
-  hint.textContent=idx===q.ans?'✅ 正確！'+q.exp:'❌ 答錯了。正確答案：'+['A','B','C','D'][q.ans]+'。'+q.exp;
-  setTimeout(function(){ currentQ++; if(currentQ<questions.length) renderQuestion(); else showScore(); },2000);
+  var isRight=idx===q.ans;
+  hint.innerHTML=(isRight?'✅ 答對了！':'❌ 答錯了！正確答案：<b>'+['A','B','C','D'][q.ans]+'</b>。')+'<br>💡 '+escHtml(q.exp)+
+    '<br><br><button onclick="nextQuestion()" style="width:100%;padding:11px;border-radius:10px;background:#185FA5;color:#fff;font-size:13px;font-weight:700;border:none;cursor:pointer;margin-top:4px;">'+(currentQ+1<questions.length?'下一題 →':'查看成績 🏆')+'</button>';
+}
+function nextQuestion(){
+  currentQ++;
+  if(currentQ<questions.length) renderQuestion();
+  else showScore();
 }
 async function showScore(){
   var correct=answers.filter(function(a){ return a.chosen===a.correct; }).length;
@@ -755,7 +769,10 @@ async function showScore(){
     '<div class="score-banner"><div class="score-num">'+score+'</div><div class="score-label">'+correct+'/'+questions.length+' 題正確 · '+(pass?'🎉 及格':'😢 未及格')+'</div><div style="color:rgba(255,255,255,.8);font-size:12px;margin-top:6px;">'+currentUser.name+' · '+FACTORY[currentUser.factory].label+'</div></div>'+
     (pass?'':'<div class="card" style="text-align:center;padding:16px;"><div style="font-size:13px;color:#A32D2D;margin-bottom:10px;">未及格，可重新考試（本次成績已列入紀錄）</div><button class="btn-primary" onclick="retakeExam()">🔄 重新考試</button></div>')+
     '<div class="card"><h3>📋 答題解析</h3>'+reviewHTML+'</div>';
-  ['material','exam','score'].forEach(function(t){ document.getElementById('stab-'+t).classList.toggle('active',t==='exam'); });
+  // 切換到「我的成績」tab
+  ['material','exam','score'].forEach(function(t){ document.getElementById('stab-'+t).classList.toggle('active',t==='score'); });
+  // 重新載入個人成績
+  setTimeout(function(){ renderMyScore(document.getElementById('stu-body')); },500);
 }
 function retakeExam(){ questions=[]; currentQ=0; answers=[]; startExam(); }
 
@@ -869,7 +886,7 @@ function startMirrorListeners(){
     var qrSection=document.getElementById('mirror-qr-section');
     var qrDiv=document.getElementById('mirror-qr-code');
     qrDiv.innerHTML=''; qrSection.style.display='block';
-    var url=window.location.origin+window.location.pathname+'?session='+encodeURIComponent(sid);
+    var url=window.location.origin+window.location.pathname+'?exam=1&session='+encodeURIComponent(sid);
     new QRCode(qrDiv,{text:url,width:200,height:200});
   });
   mirrorUnsubList.push(u2);
