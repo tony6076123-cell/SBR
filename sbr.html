@@ -353,6 +353,18 @@ var statsAllData=[], statsFilter='all';
 var statsUnsub=null, myScoreUnsub=null;
 
 window.addEventListener('load',function(){
+  // Firebase 初始化
+  try{
+    firebase.initializeApp({
+      apiKey:"AIzaSyCoeBRe_i2njEyDI0FPv9HXEGNxBb6eqg8",
+      authDomain:"yongkank-63703.firebaseapp.com",
+      projectId:"yongkank-63703",
+      storageBucket:"yongkank-63703.firebasestorage.app",
+      messagingSenderId:"353225693174",
+      appId:"1:353225693174:web:3d70fafa51e3ab8c0219d7"
+    });
+    db=firebase.firestore();
+  }catch(e){ console.error('Firebase:',e); }
 
   var params=new URLSearchParams(window.location.search);
   if(params.get('exam')==='1'||params.get('session')){
