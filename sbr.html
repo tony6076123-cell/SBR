@@ -7,6 +7,8 @@
 <meta name="theme-color" content="#0C3A6B">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
@@ -101,35 +103,35 @@ textarea:focus{outline:none;border-color:#185FA5;}
 #toast.show{opacity:1;}
 .stu-tab{flex:1;padding:11px 4px;border:none;background:#fff;font-size:12px;font-weight:600;color:#8a95a8;cursor:pointer;border-bottom:3px solid transparent;}
 .stu-tab.active{color:#185FA5;border-bottom:3px solid #185FA5;}
-#page-mirror{background:#0C3A6B;align-items:center;justify-content:center;}
-.mirror-screen{width:100%;max-width:900px;min-height:100vh;padding:24px;display:flex;flex-direction:column;gap:16px;}
-.mirror-header{text-align:center;padding:20px;border-bottom:2px solid rgba(255,255,255,0.1);}
+
+
+
 .mirror-header h1{color:#fff;font-size:28px;font-weight:900;letter-spacing:3px;}
-.mirror-section{background:rgba(255,255,255,0.08);border-radius:20px;padding:20px;}
+
 .mirror-section h2{color:rgba(255,255,255,0.6);font-size:13px;font-weight:700;margin-bottom:12px;letter-spacing:1px;}
-.mirror-transcript{color:#fff;font-size:18px;line-height:1.8;min-height:80px;white-space:pre-wrap;}
-.mirror-status{display:inline-flex;align-items:center;gap:8px;background:rgba(226,75,74,0.2);border:1px solid rgba(226,75,74,0.4);border-radius:20px;padding:6px 14px;font-size:13px;color:#ff9090;}
-.mirror-dot{width:8px;height:8px;border-radius:50%;background:#E24B4A;animation:blink 1s infinite;}
-@keyframes blink{0%,100%{opacity:1;}50%{opacity:0;}}
-.mirror-questions{display:flex;flex-direction:column;gap:10px;}
-.mirror-q{background:rgba(255,255,255,0.1);border-radius:12px;padding:14px;}
-.mirror-q-text{color:#fff;font-size:15px;font-weight:700;margin-bottom:8px;}
-.mirror-q-opts{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
-.mirror-q-opt{background:rgba(255,255,255,0.08);border-radius:8px;padding:8px 10px;font-size:13px;color:rgba(255,255,255,0.8);}
-.mirror-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
-.mirror-stat{background:rgba(255,255,255,0.1);border-radius:14px;padding:16px;text-align:center;}
-.mirror-stat-num{font-size:32px;font-weight:900;color:#fff;}
-.mirror-stat-label{font-size:11px;color:rgba(255,255,255,0.6);margin-top:4px;}
-.mirror-results{display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto;}
-.mirror-result-item{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.08);border-radius:10px;padding:10px 14px;}
-.mirror-result-name{color:#fff;font-size:14px;font-weight:700;flex:1;}
-.mirror-result-score{font-size:20px;font-weight:900;color:#4ade80;}
-.mirror-result-fail{color:#ff7070;}
-.mirror-badge{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:700;}
-.mirror-pass{background:rgba(74,222,128,0.2);color:#4ade80;}
-.mirror-fail{background:rgba(255,112,112,0.2);color:#ff7070;}
-.mirror-qr{text-align:center;}
-.live-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(226,75,74,0.25);border-radius:20px;padding:4px 12px;font-size:12px;color:#ff9090;margin-left:10px;}
+
+
+
+50%{opacity:0;}}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 </style>
 </head>
 <body>
@@ -177,11 +179,7 @@ textarea:focus{outline:none;border-color:#185FA5;}
       <div class="card-label">成績後台</div>
       <div class="card-desc">學員成績統計與即時分析</div>
     </div>
-    <div class="menu-card wide" onclick="openMirror()">
-      <div class="card-icon icon-red">📺</div>
-      <div class="card-label">投影模式（電腦用）</div>
-      <div class="card-desc">手機操作→電腦大螢幕同步顯示</div>
-    </div>
+
   </div>
 </div>
 
@@ -278,44 +276,6 @@ textarea:focus{outline:none;border-color:#185FA5;}
   </div>
 </div>
 
-<!-- 投影模式 -->
-<div id="page-mirror" class="page">
-  <div class="mirror-screen">
-    <div class="mirror-header">
-      <h1>🔧 SBR 技術長訓練系統</h1>
-      <div style="color:rgba(255,255,255,0.5);font-size:13px;margin-top:6px;">永康廠 · 歸仁廠 · 即時同步投影模式</div>
-      <div id="mirror-live-status" style="margin-top:10px;display:none;" class="mirror-status">
-        <span class="mirror-dot"></span><span>技術長錄音中...即時同步</span>
-      </div>
-    </div>
-    <div class="mirror-section">
-      <h2>📋 課程逐字稿</h2>
-      <div class="mirror-transcript" id="mirror-transcript">等待技術長開始錄音...</div>
-    </div>
-    <div class="mirror-section" id="mirror-questions-section" style="display:none;">
-      <h2>📝 考試題目</h2>
-      <div class="mirror-questions" id="mirror-questions"></div>
-    </div>
-    <div class="mirror-section mirror-qr" id="mirror-qr-section" style="display:none;">
-      <h2>📱 學員掃碼考試</h2>
-      <div id="mirror-qr-code" style="display:inline-block;background:#fff;padding:14px;border-radius:16px;margin:10px 0;"></div>
-      <div style="color:rgba(255,255,255,0.6);font-size:13px;">掃碼 → 選姓名 → 看教材 → 考試</div>
-    </div>
-    <div class="mirror-section" id="mirror-stats-section" style="display:none;">
-      <h2>📊 即時成績</h2>
-      <div class="mirror-stats" style="margin-bottom:16px;">
-        <div class="mirror-stat"><div class="mirror-stat-num" id="m-total">0</div><div class="mirror-stat-label">考試人數</div></div>
-        <div class="mirror-stat"><div class="mirror-stat-num" id="m-avg">-</div><div class="mirror-stat-label">平均分數</div></div>
-        <div class="mirror-stat"><div class="mirror-stat-num" id="m-pass">0</div><div class="mirror-stat-label">及格人數</div></div>
-        <div class="mirror-stat"><div class="mirror-stat-num" id="m-rate">-</div><div class="mirror-stat-label">及格率</div></div>
-      </div>
-      <div class="mirror-results" id="mirror-results"></div>
-    </div>
-    <div style="text-align:center;padding:10px;">
-      <button onclick="exitMirror()" style="padding:10px 24px;border-radius:20px;background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);border:none;cursor:pointer;font-size:12px;">退出投影模式</button>
-    </div>
-  </div>
-</div>
 
 <!-- 密碼 modal -->
 <div class="modal-overlay" id="tech-modal">
@@ -330,8 +290,6 @@ textarea:focus{outline:none;border-color:#185FA5;}
 </div>
 <div id="toast"></div>
 
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script>
 var FACTORY={
   yk:{label:'永康廠',groups:{
@@ -371,7 +329,6 @@ window.addEventListener('load',function(){
     fromQR=true;
     document.getElementById('qr-hint').style.display='block';
   }
-  if(params.get('mirror')==='1'){ openMirrorDirect(); return; }
   switchFactory('yk');
   buildImgGrid();
   // ★ 頁面載入就開始監聽逐字稿（電腦和手機都即時同步）
@@ -908,70 +865,6 @@ function clearStats(){
   db.collection('sbr_training').where('type','==','exam').get().then(function(snap){
     var batch=db.batch(); snap.forEach(function(d){ batch.delete(d.ref); }); return batch.commit();
   }).then(function(){ showToast('✅ 已清除紀錄'); if(statsUnsub){statsUnsub();statsUnsub=null;} startStatsListener(); });
-}
-
-// ══ 投影模式 ══
-function openMirror(){
-  var url=window.location.origin+window.location.pathname+'?mirror=1';
-  window.open(url,'_blank');
-  showToast('✅ 投影模式已在新分頁開啟！');
-}
-function openMirrorDirect(){
-  try{
-    firebase.initializeApp({apiKey:"AIzaSyCoeBRe_i2njEyDI0FPv9HXEGNxBb6eqg8",authDomain:"yongkank-63703.firebaseapp.com",projectId:"yongkank-63703",storageBucket:"yongkank-63703.firebasestorage.app",messagingSenderId:"353225693174",appId:"1:353225693174:web:3d70fafa51e3ab8c0219d7"});
-    db=firebase.firestore();
-  }catch(e){}
-  showPage('page-mirror');
-  startMirrorListeners();
-}
-function exitMirror(){ window.close(); }
-function startMirrorListeners(){
-  if(!db) return;
-  db.collection('sbr_training').doc('voice_transcript').onSnapshot(function(snap){
-    if(!snap.exists) return;
-    var d=snap.data();
-    document.getElementById('mirror-transcript').textContent=d.text||'等待技術長開始錄音...';
-    var ls=document.getElementById('mirror-live-status');
-    ls.style.display=d.streaming?'inline-flex':'none';
-  });
-  db.collection('sbr_training').doc('exam_session').onSnapshot(function(snap){
-    if(!snap.exists) return;
-    var d=snap.data(); var qs=d.questions||[];
-    var sec=document.getElementById('mirror-questions-section');
-    var con=document.getElementById('mirror-questions');
-    if(!qs.length){ sec.style.display='none'; return; }
-    sec.style.display='block'; con.innerHTML='';
-    qs.forEach(function(q,i){
-      var div=document.createElement('div'); div.className='mirror-q';
-      div.innerHTML='<div class="mirror-q-text">'+(i+1)+'. '+escHtml(q.q)+'</div>'+
-        '<div class="mirror-q-opts">'+q.opts.map(function(o,oi){ return '<div class="mirror-q-opt">'+['A','B','C','D'][oi]+'. '+escHtml(o)+'</div>'; }).join('')+'</div>';
-      con.appendChild(div);
-    });
-    var qrSec=document.getElementById('mirror-qr-section');
-    var qrDiv=document.getElementById('mirror-qr-code');
-    qrDiv.innerHTML=''; qrSec.style.display='block';
-    new QRCode(qrDiv,{text:window.location.origin+window.location.pathname+'?exam=1&session='+encodeURIComponent(d.sessionId),width:200,height:200});
-  });
-  db.collection('sbr_training').where('type','==','exam').orderBy('ts','desc').onSnapshot(function(snap){
-    var sec=document.getElementById('mirror-stats-section');
-    if(snap.empty){ sec.style.display='none'; return; }
-    sec.style.display='block';
-    var total=0,sum=0,pass=0;
-    var res=document.getElementById('mirror-results'); res.innerHTML='';
-    snap.forEach(function(d){
-      var r=d.data(); total++; sum+=r.score; if(r.pass) pass++;
-      var item=document.createElement('div'); item.className='mirror-result-item';
-      var fl=r.factory&&FACTORY[r.factory]?FACTORY[r.factory].label:'';
-      item.innerHTML='<div class="mirror-result-name">'+escHtml(r.name)+(fl?' <span style="font-size:11px;color:rgba(255,255,255,0.5);">'+fl+'</span>':'')+'</div>'+
-        '<div class="mirror-result-score '+(r.pass?'':'mirror-result-fail')+'">'+r.score+'分</div>'+
-        '<span class="mirror-badge '+(r.pass?'mirror-pass':'mirror-fail')+'">'+(r.pass?'及格':'未及格')+'</span>';
-      res.appendChild(item);
-    });
-    document.getElementById('m-total').textContent=total;
-    document.getElementById('m-avg').textContent=Math.round(sum/total);
-    document.getElementById('m-pass').textContent=pass;
-    document.getElementById('m-rate').textContent=Math.round(pass/total*100)+'%';
-  });
 }
 
 function escHtml(str){ return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
