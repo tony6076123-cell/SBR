@@ -141,7 +141,7 @@ canvas#signCanvas{display:block;width:100%;height:160px;touch-action:none;cursor
       <option value="歸仁">歸仁廠</option>
     </select>
     <div style="height:10px"></div>
-    <select class="sel" id="name-sel" onchange="onNameChange()"><option value="">── 選擇姓名 ──</option><option value="楊家豪">楊家豪</option><option value="葉昶廷">葉昶廷</option><option value="邱中韋">邱中韋</option><option value="蔡松益">蔡松益</option><option value="王耀彬">王耀彬</option><option value="謝福志">謝福志</option><option value="陳重佑">陳重佑</option><option value="陳昱傑">陳昱傑</option><option value="許韶剛">許韶剛</option><option value="邱柏誠">邱柏誠</option><option value="林建男">林建男</option><option value="楊晉嘉">楊晉嘉</option><option value="林智瑋">林智瑋</option><option value="梁仲旻">梁仲旻</option><option value="黃昱愷">黃昱愷</option><option value="黃國偉">黃國偉</option><option value="吳聘訪">吳聘訪</option><option value="穆冠忡">穆冠忡</option><option value="李慶珍">李慶珍</option><option value="宋偉祥">宋偉祥</option><option value="蘇晋賢">蘇晋賢</option><option value="李右淋">李右淋</option><option value="孫志文">孫志文</option><option value="鄭龍祥">鄭龍祥</option><option value="林佳楓">林佳楓</option><option value="蘇紹惟">蘇紹惟</option><option value="蔡明籠">蔡明籠</option><option value="周明勳">周明勳</option><option value="孫煜展">孫煜展</option><option value="李俊輝">李俊輝</option><option value="黃詩詠">黃詩詠</option><option value="張家銓">張家銓</option><option value="宋秉霖">宋秉霖</option><option value="蘇柏豪">蘇柏豪</option><option value="劉倍源">劉倍源</option></select>
+    <select class="sel" id="name-sel" onchange="onNameChange()"><option value="">── 選擇姓名 ──</option><option value="楊家豪">楊家豪</option><option value="葉昶廷">葉昶廷</option><option value="邱中韋">邱中韋</option><option value="蔡松益">蔡松益</option><option value="王耀彬">王耀彬</option><option value="謝福志">謝福志</option><option value="陳昱傑">陳昱傑</option><option value="許韶剛">許韶剛</option><option value="邱柏誠">邱柏誠</option><option value="林建男">林建男</option><option value="楊晉嘉">楊晉嘉</option><option value="林智瑋">林智瑋</option><option value="梁仲旻">梁仲旻</option><option value="黃昱愷">黃昱愷</option><option value="黃國偉">黃國偉</option><option value="吳聘訪">吳聘訪</option><option value="穆冠忡">穆冠忡</option><option value="李慶珍">李慶珍</option><option value="宋偉祥">宋偉祥</option><option value="蘇晋賢">蘇晋賢</option><option value="李右淋">李右淋</option><option value="孫志文">孫志文</option><option value="鄭龍祥">鄭龍祥</option><option value="林佳楓">林佳楓</option><option value="蘇紹惟">蘇紹惟</option><option value="蔡明籠">蔡明籠</option><option value="周明勳">周明勳</option><option value="孫煜展">孫煜展</option><option value="李俊輝">李俊輝</option><option value="黃詩詠">黃詩詠</option><option value="張家銓">張家銓</option><option value="宋秉霖">宋秉霖</option><option value="蘇柏豪">蘇柏豪</option><option value="劉倍源">劉倍源</option></select>
   </div>
   <div class="sec-lbl">我的狀態</div>
   <div class="stat-grid">
@@ -433,7 +433,7 @@ function showSyncStatus(msg,hideAfter=0){
   if(hideAfter)syncTimer=setTimeout(()=>el.style.opacity='0',hideAfter);
 }
 
-const MEMBERS={'永康':['楊家豪','葉昶廷','邱中韋','蔡松益','王耀彬','謝福志','陳重佑','陳昱傑','許韶剛','邱柏誠','林建男','楊晉嘉','林智瑋','梁仲旻','黃昱愷','黃國偉','吳聘訪','穆冠忡','李慶珍','宋偉祥','蘇晋賢','李右淋','孫志文','鄭龍祥','林佳楓','蘇紹惟','蔡明籠','周明勳','孫煜展','李俊輝','黃詩詠','張家銓','宋秉霖','蘇柏豪','劉倍源'],'歸仁':['黃冠榮','蔡裕全','吳晏丞','莊祁穎','鄭佳勝','張翔政','李章愷','林功源','楊昶智','黃武正','黃登龍','吳典松','薛承恩','林士勛']};
+const MEMBERS={'永康':['楊家豪','葉昶廷','邱中韋','蔡松益','王耀彬','謝福志','陳昱傑','許韶剛','邱柏誠','林建男','楊晉嘉','林智瑋','梁仲旻','黃昱愷','黃國偉','吳聘訪','穆冠忡','李慶珍','宋偉祥','蘇晋賢','李右淋','孫志文','鄭龍祥','林佳楓','蘇紹惟','蔡明籠','周明勳','孫煜展','李俊輝','黃詩詠','張家銓','宋秉霖','蘇柏豪','劉倍源'],'歸仁':['黃冠榮','蔡裕全','吳晏丞','莊祁穎','鄭佳勝','張翔政','李章愷','林功源','楊昶智','黃武正','黃登龍','吳典松','薛承恩','林士勛']};
 const TEACHER_PW='1234';
 const KEY='sbr_v3';
 
