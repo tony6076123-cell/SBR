@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>售後三崗位 · 評論解說動畫（進階版）</title>
+<style>
+:root{
+  --bg:#0a1424; --bg2:#101f38; --card:rgba(255,255,255,.06); --cardb:rgba(255,255,255,.12);
+  --text:#eef3fa; --mute:#9fb3d1; --gold:#ffc857; --good:#4ade80; --bad:#ff6b6b; --blue:#5eb1ff; --violet:#a78bfa;
+  --track:rgba(255,255,255,.08); --shadow:0 10px 30px rgba(0,0,0,.35);
+  --blob1:rgba(94,177,255,.18); --blob2:rgba(167,139,250,.16);
+}
+[data-theme=light]{
+  --bg:#f3f6fb; --bg2:#e6edf7; --card:rgba(255,255,255,.85); --cardb:rgba(20,40,80,.14);
+  --text:#14233c; --mute:#53668a; --gold:#c98a00; --good:#15924a; --bad:#d63b3b; --blue:#1f74d8; --violet:#6d4fd6;
+  --track:rgba(20,40,80,.1); --shadow:0 8px 22px rgba(20,40,80,.12);
+  --blob1:rgba(31,116,216,.12); --blob2:rgba(109,79,214,.1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;color:var(--text);overflow:hidden;
+  font-family:"Microsoft JhengHei","微軟正黑體","PingFang TC","Noto Sans TC",sans-serif;background:var(--bg)}
+body::before,body::after{content:"";position:fixed;width:60vmax;height:60vmax;border-radius:50%;filter:blur(80px);z-index:0;pointer-events:none}
+body::before{background:var(--blob1);left:-20vmax;top:-25vmax;animation:drift 22s ease-in-out infinite alternate}
+body::after{background:var(--blob2);right:-25vmax;bottom:-30vmax;animation:drift 28s ease-in-out infinite alternate-reverse}
+@keyframes drift{to{transform:translate(8vmax,6vmax)}}
+#app{position:relative;z-index:1;height:100%;display:flex;flex-direction:column}
+header{display:flex;align-items:center;justify-content:space-between;padding:10px 24px;font-size:14px;color:var(--mute)}
+header b{color:var(--gold);letter-spacing:1px}
+#bar{height:3px;background:var(--track)}
+#bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--blue));transition:width .5s}
+#stage{flex:1;position:relative;overflow:hidden}
+.scene{position:absolute;inset:0;padding:22px 6vw 16px;display:flex;flex-direction:column;gap:12px;opacity:0;pointer-events:none;
+  transform:translateX(24px);transition:opacity .45s,transform .45s;overflow-y:auto}
+.scene.on{opacity:1;pointer-events:auto;transform:none}
+.tag{display:inline-flex;align-items:center;gap:8px;color:var(--gold);font-size:14px;letter-spacing:2px;font-weight:700}
+.tag::before{content:"";width:26px;height:3px;border-radius:2px;background:var(--gold)}
+h1{font-size:clamp(28px,4.6vw,56px);line-height:1.2;font-weight:800;background:linear-gradient(120deg,var(--text) 30%,var(--blue));-webkit-background-clip:text;background-clip:text;color:transparent}
+h2{font-size:clamp(21px,3vw,36px);line-height:1.3;font-weight:800}
+.sub{color:var(--mute);font-size:clamp(13px,1.5vw,18px);line-height:1.6}
+.row{display:flex;gap:16px;flex-wrap:wrap}
+.card{background:var(--card);border:1px solid var(--cardb);border-radius:16px;padding:14px 18px;flex:1;min-width:230px;box-shadow:var(--shadow);backdrop-filter:blur(6px)}
+.scene>.card{flex:none}
+.card h3{font-size:16px;color:var(--gold);margin-bottom:8px}
+.cap{margin-top:auto;background:var(--card);border:1px solid var(--cardb);border-left:5px solid var(--gold);padding:11px 16px;border-radius:10px;font-size:clamp(14px,1.7vw,20px);line-height:1.6}
+.a{opacity:0;transform:translateY(16px)}
+.scene.on .a{animation:rise .6s forwards;animation-delay:calc(var(--d,0)*1s)}
+@keyframes rise{to{opacity:1;transform:none}}
+.good-c{color:var(--good)}.bad-c{color:var(--bad)}.gold-c{color:var(--gold)}.blue-c{color:var(--blue)}
+.center{text-align:center}
+.big{font-size:clamp(36px,6vw,76px);font-weight:800;line-height:1.05}
+.big+.sub{margin-top:8px}
+/* 圓環 */
+.rings{display:flex;gap:10px;justify-content:space-around;flex-wrap:wrap}
+.ring{width:150px;text-align:center}
+.ring svg{width:130px;height:130px;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:12;stroke-linecap:round}
+.ring .tr{stroke:var(--track)}
+.ring .v{stroke-dasharray:0 327;transition:stroke-dasharray 1.4s cubic-bezier(.2,.8,.2,1)}
+.scene.on .ring .v{stroke-dasharray:var(--p) 327}
+.ring .n{margin-top:-86px;height:60px;font-size:24px;font-weight:800}
+.ring .l{margin-top:26px;font-size:15px;color:var(--mute)}
+/* 條 */
+.bars{display:grid;gap:9px}
+.br{display:grid;grid-template-columns:84px 1fr 60px;align-items:center;gap:10px;font-size:16px}
+.br .t{background:var(--track);border-radius:8px;height:26px;overflow:hidden}
+.br .f{height:100%;width:0;border-radius:8px;background:var(--blue);transition:width 1.2s cubic-bezier(.2,.8,.2,1)}
+.scene.on .br .f{width:var(--w)}
+.br.me .f{background:var(--good)}.br.bad .f{background:var(--bad)}
+.br .v{font-weight:800;text-align:right}
+/* 熱度矩陣 */
+.mx{display:grid;grid-template-columns:90px repeat(3,1fr);gap:8px;font-size:clamp(14px,1.6vw,19px)}
+.mx .h{color:var(--mute);text-align:center;padding:6px}
+.mx .rn{display:grid;place-items:center;font-weight:800}
+.cell{border:2px solid transparent;border-radius:12px;padding:10px 6px;text-align:center;font:inherit;color:var(--text);cursor:pointer;transition:transform .15s,border-color .15s}
+.cell:hover{transform:translateY(-2px);border-color:var(--text)}
+.cell.sel{border-color:var(--gold)}
+.cell b{display:block;font-size:1.5em}.cell small{color:var(--mute)}
+.h0{background:rgba(74,222,128,.22)}.h1{background:rgba(255,200,87,.22)}.h2{background:rgba(255,140,90,.35)}.h3{background:rgba(255,107,107,.5)}
+#mxinfo{min-height:60px;font-size:clamp(14px,1.6vw,19px);line-height:1.7}
+/* 引言 */
+.q{border-left:4px solid var(--blue);padding:5px 12px;margin:6px 0;font-size:15px}
+.q small{color:var(--mute);display:block}.q.x{border-color:var(--bad)}
+/* 計算器 */
+.calc{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.calc label{font-size:14px;color:var(--mute);display:block;margin-bottom:4px}
+.calc input{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--cardb);background:var(--track);color:var(--text);font:inherit;font-size:22px;font-weight:700}
+#res{margin-top:10px;padding:14px;border-radius:12px;font-size:clamp(15px,1.8vw,22px);line-height:1.6;font-weight:700}
+#res.ok{background:rgba(74,222,128,.18);border:1px solid var(--good)}
+#res.no{background:rgba(255,107,107,.2);border:1px solid var(--bad)}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.chip{padding:6px 14px;border-radius:99px;border:1px solid var(--cardb);background:var(--card);color:var(--text);font:inherit;font-size:14px;cursor:pointer}
+.chip:hover{border-color:var(--gold)}
+/* 流程 */
+.flow{display:flex;align-items:flex-start;justify-content:space-between;gap:4px;position:relative;margin:8px 0}
+.flow::before{content:"";position:absolute;left:4%;right:4%;top:24px;height:4px;background:var(--track);border-radius:2px}
+.flow .prog{position:absolute;left:4%;top:24px;height:4px;border-radius:2px;background:linear-gradient(90deg,var(--gold),var(--good));width:0;transition:width .7s}
+.st{flex:1;text-align:center;position:relative;cursor:pointer;font-size:clamp(11px,1.3vw,16px)}
+.st i{display:grid;place-items:center;width:48px;height:48px;margin:0 auto 6px;border-radius:50%;background:var(--bg2);border:3px solid var(--track);font-style:normal;font-weight:800;font-size:18px;transition:all .4s}
+.st.on i{border-color:var(--gold);background:var(--gold);color:#222;transform:scale(1.15)}
+.st.done i{border-color:var(--good);color:var(--good)}
+#stinfo{min-height:96px}
+#stinfo b{font-size:clamp(17px,2.1vw,26px);color:var(--gold)}
+#stinfo p{margin-top:6px;font-size:clamp(14px,1.7vw,20px);line-height:1.7}
+/* 時間軸（比例） */
+.tlw{position:relative;height:200px;margin:6px 10px 0}
+.tlw .ax{position:absolute;left:0;right:0;top:62px;height:6px;border-radius:3px;background:var(--track)}
+.tlw .gap{position:absolute;top:62px;height:6px;border-radius:3px;background:var(--bad);transform-origin:left;transform:scaleX(0)}
+.scene.on .tlw .gap{animation:grow 1.6s 2s forwards}
+@keyframes grow{to{transform:scaleX(1)}}
+.pt{position:absolute;top:0;transform:translateX(-50%);text-align:center;font-size:clamp(11px,1.25vw,15px);width:120px;line-height:1.4}
+.pt.low{top:84px}
+.pt::after{content:"";display:block;width:14px;height:14px;border-radius:50%;background:var(--blue);margin:6px auto 0;border:2px solid var(--bg)}
+.pt.low::after{display:none}.pt.low::before{content:"";display:block;width:14px;height:14px;border-radius:50%;background:var(--blue);margin:0 auto 6px;border:2px solid var(--bg)}
+.pt.x::after,.pt.x::before{background:var(--bad)}
+.pt b{color:var(--gold);display:block;font-size:1.15em}
+.tick{position:absolute;top:50px;font-size:11px;color:var(--mute);transform:translateX(-50%)}
+/* 翻牌 */
+.flips{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px}
+.fc{perspective:900px;height:210px;cursor:pointer}
+.fi{position:relative;width:100%;height:100%;transition:transform .6s;transform-style:preserve-3d}
+.fc.fl .fi{transform:rotateY(180deg)}
+.ff,.fb{position:absolute;inset:0;backface-visibility:hidden;border-radius:16px;padding:16px 18px;display:flex;flex-direction:column;justify-content:center;gap:8px;border:1px solid var(--cardb);box-shadow:var(--shadow)}
+.ff{background:rgba(255,107,107,.16)}.fb{background:rgba(74,222,128,.16);transform:rotateY(180deg)}
+.ff small,.fb small{font-weight:800;letter-spacing:1px}
+.ff small{color:var(--bad)}.fb small{color:var(--good)}
+.ff p,.fb p{font-size:clamp(15px,1.8vw,21px);line-height:1.6}
+.fb em{font-size:12px;color:var(--mute);font-style:normal}
+/* 測驗/情境 */
+.opt{display:block;width:100%;text-align:left;margin:6px 0;padding:11px 16px;border-radius:12px;border:2px solid var(--cardb);background:var(--card);color:var(--text);font:inherit;font-size:clamp(14px,1.7vw,19px);cursor:pointer;transition:border-color .15s,transform .15s}
+.opt:hover:not(:disabled){border-color:var(--blue);transform:translateX(4px)}
+.opt.ok{border-color:var(--good);background:rgba(74,222,128,.2)}.opt.no{border-color:var(--bad);background:rgba(255,107,107,.2)}
+.fb2{min-height:50px;margin-top:6px;font-size:clamp(14px,1.6vw,18px);color:var(--mute);line-height:1.7}
+.pill{display:inline-block;padding:2px 10px;border-radius:99px;background:rgba(167,139,250,.25);color:var(--violet);font-size:12px;font-weight:700}
+.btn{background:var(--gold);color:#1d1d1d;border:0;border-radius:10px;padding:9px 20px;font:inherit;font-weight:800;cursor:pointer;font-size:15px}
+.btn.g{background:var(--card);color:var(--text);border:1px solid var(--cardb)}
+.qp{height:6px;border-radius:3px;background:var(--track);overflow:hidden}.qp i{display:block;height:100%;background:var(--gold);transition:width .4s}
+.chk{display:flex;gap:12px;align-items:flex-start;padding:10px 14px;border-radius:12px;border:1px solid var(--cardb);background:var(--card);cursor:pointer;margin:6px 0;font-size:clamp(14px,1.7vw,19px);line-height:1.6}
+.chk .bx{flex:none;width:26px;height:26px;border-radius:8px;border:2px solid var(--gold);display:grid;place-items:center;color:#222;font-weight:900}
+.chk.on .bx{background:var(--gold)}.chk.on .bx::after{content:"✓"}
+/* 講稿 */
+#notes{display:none;flex:none;max-height:30%;overflow:auto;background:var(--bg2);border-top:3px solid var(--violet);padding:10px 6vw;font-size:clamp(14px,1.6vw,18px);line-height:1.8}
+#notes.show{display:block}#notes b{color:var(--violet)}
+footer{display:flex;gap:7px;align-items:center;justify-content:center;padding:9px;flex-wrap:wrap;border-top:1px solid var(--cardb);background:var(--card)}
+button.c{background:var(--card);color:var(--text);border:1px solid var(--cardb);border-radius:9px;padding:7px 14px;font:inherit;font-size:14px;cursor:pointer}
+button.c:hover{border-color:var(--gold)}button.c.on{background:var(--gold);color:#222;border-color:var(--gold)}
+#dots{display:flex;gap:6px;margin:0 8px}#dots i{width:9px;height:9px;border-radius:50%;background:var(--track);cursor:pointer}#dots i.on{background:var(--gold);transform:scale(1.3)}
+@media (prefers-reduced-motion:reduce){.a{opacity:1;transform:none}.scene.on .a{animation:none}body::before,body::after{animation:none}.scene{transition:opacity .2s;transform:none}}
+@media (max-width:640px){.scene{padding:16px 14px}.mx{grid-template-columns:60px repeat(3,1fr)}.calc{grid-template-columns:1fr}.pt{width:90px}.fc{height:240px}}
+</style>
+</head>
+<body>
+<div id="app">
+<header><span><b>SBR</b>　售後三崗位 · 評論解說動畫（進階版）</span><span id="pg"></span></header>
+<div id="bar"><i></i></div>
+<div id="stage">
+
+<!-- 1 封面 -->
+<section class="scene" data-note="各位好，今天報的是 Google 上客人怎麼評我們的售後，跟伸陽、嘉田比。這次我把近兩年的評論一則一則抓下來，負評每一則都自己讀過，分到接待、出納、技師三個崗位。今天最後要請兩位廠長決定三件事。">
+  <div class="tag a" style="--d:0">近兩年網路聲量 · 三法人</div>
+  <h1 class="a" style="--d:.2">客人怎麼評我們的售後？</h1>
+  <div class="sub a" style="--d:.4">巧克力 vs 伸陽 vs 嘉田　｜　Google 地圖七據點全量評論　｜　2026-09-29 擷取</div>
+  <div class="row" style="margin-top:6px">
+    <div class="card center a" style="--d:.7"><h3>近 2 年評論</h3><div class="big blue-c"><span data-count="716" data-fmt="1">0</span></div><div class="sub">則（1–3★ 逐則人工判讀）</div></div>
+    <div class="card center a" style="--d:.9"><h3>巧克力平均星等</h3><div class="big good-c"><span data-count="4.8" data-dec="2">0</span></div><div class="sub">伸陽 4.56 ／ 嘉田 4.23</div></div>
+    <div class="card center a" style="--d:1.1"><h3>三個崗位</h3><div class="big gold-c">3</div><div class="sub">接待 · 出納／結帳 · 技師</div></div>
+  </div>
+  <div class="cap a" style="--d:1.5">今天要回答三個問題：我們輸在哪？對手的破口在哪？明天早上開始，每個人該做什麼？</div>
+</section>
+
+<!-- 2 三法人 -->
+<section class="scene" data-note="結論一句話：三個崗位，巧克力的負評都最少。看負評率，我們 4.0%，伸陽 9.3%，嘉田 17.4%。我們贏在回覆：業主回覆率 99%，伸陽是 0。但我們也有兩個地方輸，等一下會講。">
+  <div class="tag a" style="--d:0">總覽</div>
+  <h2 class="a" style="--d:.2">我們贏在「回覆」——99% vs 伸陽 0%</h2>
+  <div class="row">
+    <div class="card a" style="--d:.5"><h3>1–2★ 負評率（越低越好）</h3>
+      <div class="rings">
+        <div class="ring"><svg viewBox="0 0 120 120"><circle class="tr" cx="60" cy="60" r="52"/><circle class="v" cx="60" cy="60" r="52" style="--p:13;stroke:var(--good)"/></svg><div class="n good-c">4.0%</div><div class="l">巧克力</div></div>
+        <div class="ring"><svg viewBox="0 0 120 120"><circle class="tr" cx="60" cy="60" r="52"/><circle class="v" cx="60" cy="60" r="52" style="--p:30;stroke:var(--gold)"/></svg><div class="n gold-c">9.3%</div><div class="l">伸陽</div></div>
+        <div class="ring"><svg viewBox="0 0 120 120"><circle class="tr" cx="60" cy="60" r="52"/><circle class="v" cx="60" cy="60" r="52" style="--p:57;stroke:var(--bad)"/></svg><div class="n bad-c">17.4%</div><div class="l">嘉田</div></div>
+      </div></div>
+    <div class="card a" style="--d:.9"><h3>業主回覆率（越高越好）</h3>
+      <div class="rings">
+        <div class="ring"><svg viewBox="0 0 120 120"><circle class="tr" cx="60" cy="60" r="52"/><circle class="v" cx="60" cy="60" r="52" style="--p:323;stroke:var(--good)"/></svg><div class="n good-c">99%</div><div class="l">巧克力</div></div>
+        <div class="ring"><svg viewBox="0 0 120 120"><circle class="tr" cx="60" cy="60" r="52"/><circle class="v" cx="60" cy="60" r="52" style="--p:1;stroke:var(--bad)"/></svg><div class="n bad-c">0%</div><div class="l">伸陽</div></div>
+        <div class="ring"><svg viewBox="0 0 120 120"><circle class="tr" cx="60" cy="60" r="52"/><circle class="v" cx="60" cy="60" r="52" style="--p:49;stroke:var(--bad)"/></svg><div class="n bad-c">15%</div><div class="l">嘉田</div></div>
+      </div></div>
+  </div>
+  <div class="sub a" style="--d:1.3">評論數：巧克力 427 ／ 伸陽 140 ／ 嘉田 149。樣本大小不同，比的是「比率」，不是「則數」。</div>
+  <div class="cap a" style="--d:1.5">三個崗位，巧克力負評都最少。對手各有破口，我們有兩件事要補。</div>
+</section>
+
+<!-- 3 熱度矩陣 -->
+<section class="scene" data-note="這張表每一格是每百則評論裡，這個崗位被罵幾則。顏色越紅越嚴重。伸陽破在技師，每百則 5.0；嘉田破在接待，每百則 8.1。你可以點任何一格，看那一格背後客人在罵什麼。">
+  <div class="tag a" style="--d:0">負評落在哪個崗位</div>
+  <h2 class="a" style="--d:.2">每百則評論，各崗位被罵幾則？<span class="pill" style="margin-left:10px">可點擊</span></h2>
+  <div class="mx a" style="--d:.5" id="mx"></div>
+  <div class="card a" style="--d:.9"><div id="mxinfo" class="sub" style="color:var(--text)">👆 點上面任何一格，看客人實際在罵什麼。</div></div>
+  <div class="cap a" style="--d:1.2">伸陽破在<b>技師</b>、嘉田破在<b>接待</b>。我們都在低位，但「接待」與「結帳」各有一個要守的點。</div>
+</section>
+
+<!-- 4 接待 -->
+<section class="scene" data-note="先看接待。好評我們最多，嘉田負評最多。三家共同的地雷一樣：取車時間說變就變，中間沒人講。我們的優勢是點名好評，五星常直接寫接待的名字。要守的是 9/22 永康那則一星，最新一則，還沒回覆。">
+  <div class="tag a" style="--d:0">① 接待</div>
+  <h2 class="a" style="--d:.2">三家共同的地雷：取車時間說變就變，中間不主動講</h2>
+  <div class="row">
+    <div class="card a" style="--d:.5"><h3>客人罵什麼（三家合計，則）</h3>
+      <div class="bars">
+        <div class="br bad"><span>態度差</span><div class="t"><div class="f" style="--w:100%"></div></div><span class="v">8</span></div>
+        <div class="br bad"><span>變卦</span><div class="t"><div class="f" style="--w:62%"></div></div><span class="v">5</span></div>
+        <div class="br"><span>說明不清</span><div class="t"><div class="f" style="--w:50%"></div></div><span class="v">4</span></div>
+        <div class="br"><span>電話打不通</span><div class="t"><div class="f" style="--w:25%"></div></div><span class="v">2</span></div>
+      </div>
+      <div class="sub" style="margin-top:8px">變卦＝取車時間變卦／進度不主動告知。態度差含「櫃檯聊天滑手機沒人理」。</div></div>
+    <div class="card a" style="--d:.9"><h3>客人原話</h3>
+      <div class="q">接待專員很仔細注意車子，也耐心說明車況<small>巧克力 · 5★</small></div>
+      <div class="q x">想考慮一下就被問「是不是覺得太貴」<small>巧克力 · 1★（9/22 永康，未回覆）</small></div>
+      <div class="q x">過了預估時間車還沒好，也沒人來告知<small>嘉田 · 1★</small></div>
+      <div class="q x">接待心不在焉也不紀錄，交代的沒修到<small>伸陽 · 1★</small></div></div>
+  </div>
+  <div class="cap a" style="--d:1.4">我們的資產是「點名好評」。5★ 常直接寫出接待姓名——對手少見。</div>
+</section>
+
+<!-- 5 結帳 + 計算器 -->
+<section class="scene" data-note="第二個是出納。重點是：近兩年七百一十六則評論，沒有一個人罵出納本人。客人罵的是結帳價跟當初報價不一樣。價格類負評我們五則，三家最多，全部在永康。下面這個小工具，你可以輸入報價跟實收，看會不會觸發主管覆核。">
+  <div class="tag a" style="--d:0">② 出納／結帳</div>
+  <h2 class="a" style="--d:.2">沒有人罵出納——罵的是「結帳價 ≠ 報價」</h2>
+  <div class="row">
+    <div class="card center a" style="--d:.4"><h3>提到「出納」的評論</h3><div class="big good-c"><span data-count="0">0</span> 則</div></div>
+    <div class="card center a" style="--d:.6"><h3>價格類負評（巧克力）</h3><div class="big bad-c"><span data-count="5">0</span> 則</div><div class="sub">三家最多，全在永康</div></div>
+    <div class="card a" style="--d:.8;flex:1.6"><h3>🧮 結帳覆核小工具　<span class="pill">實收比報價多 10% 以上 → 主管覆核</span></h3>
+      <div class="calc"><div><label>報價（元）</label><input id="cq" type="number" inputmode="numeric" value="4458"></div><div><label>實收（元）</label><input id="cp" type="number" inputmode="numeric" value="8524"></div></div>
+      <div class="chips"><button class="chip" data-q="4458" data-p="8524">伸陽案例</button><button class="chip" data-q="4458" data-p="4458">一致</button><button class="chip" data-q="4458" data-p="4800">小幅加項</button></div>
+      <div id="res"></div></div>
+  </div>
+  <div class="q x a" style="--d:1.1">保養菜單亂添加，說什麼必保菜單<small>巧克力 · 1★　｜　伸陽 · 1★：三萬公里定保 4,458 元，被做到 8,524 元</small></div>
+  <div class="cap a" style="--d:1.3">連 5★ 好評都在提醒：「之前給別的專員接待，被加很多套餐、費用高得驚人」。結帳的工作是把差額講清楚，不是只收錢。</div>
+</section>
+
+<!-- 6 技師 -->
+<section class="scene" data-note="第三個技師。伸陽最嚴重的是保養完出現原本沒有的問題。我們的技師負評不是做壞，是找不到。四則是留車查不出原因：客人帶照片、帶影片來，最後聽到沒遇到，就覺得被推託。有一位車主五年反覆發不動，三家都沒解決。誰先把疑難故障處理好，誰就贏。">
+  <div class="tag a" style="--d:0">③ 技師</div>
+  <h2 class="a" style="--d:.2">我們輸在「查不出來」，不是「做壞」</h2>
+  <div class="row">
+    <div class="card a" style="--d:.5"><h3>技師負評每百則</h3>
+      <div class="bars">
+        <div class="br me"><span>巧克力</span><div class="t"><div class="f" style="--w:32%"></div></div><span class="v">1.6</span></div>
+        <div class="br"><span>嘉田</span><div class="t"><div class="f" style="--w:54%"></div></div><span class="v">2.7</span></div>
+        <div class="br bad"><span>伸陽</span><div class="t"><div class="f" style="--w:100%"></div></div><span class="v">5.0</span></div>
+      </div>
+      <div class="sub" style="margin-top:8px">伸陽：保養後出現原本沒有的問題 3、修不好 2、鈑噴／點漆 2。</div></div>
+    <div class="card a" style="--d:.9"><h3>巧克力 7 則技師負評，其中</h3>
+      <div class="bars">
+        <div class="br bad"><span>查不出</span><div class="t"><div class="f" style="--w:100%"></div></div><span class="v">4</span></div>
+        <div class="br"><span>修不好</span><div class="t"><div class="f" style="--w:50%"></div></div><span class="v">2</span></div>
+      </div>
+      <div class="q x" style="margin-top:10px">有燈號故障照片，留車 2 天還是查不出原因<small>巧克力 · 1★</small></div>
+      <div class="q">外廠說要換控制盒，原廠查出只是保險絲<small>嘉田 · 5★（查得出來就是賣點）</small></div></div>
+  </div>
+  <div class="cap a" style="--d:1.4">一位 FIT 車主五年反覆發不動，巧克力、東台南、嘉義三家都沒解決。三家一樣弱——<b>誰先解決誰贏</b>。</div>
+</section>
+
+<!-- 7 9/22 時間軸 -->
+<section class="scene" data-note="這是 9/22 永康那則一星。客人準時進廠，前一天的提醒電話還特地道謝。扣分全在現場那三個半小時。十點十五，客人說想考慮一下，被問是不是覺得太貴。十點二十五客人其實已經決定了，十點五十五才有人第二次來問，中間三十分鐘枯坐。然後才被告知一點半才能拿車，沒有代步車。注意：時間是客人自述，不是系統紀錄。">
+  <div class="tag a" style="--d:0">案例拆解 · 永康 9/22 一則 1★</div>
+  <h2 class="a" style="--d:.2">不是嫌貴，是被問「太貴嗎」之後被晾了 30 分鐘</h2>
+  <div class="tlw a" style="--d:.5">
+    <div class="ax"></div><div class="gap" style="left:11.9%;width:14.3%"></div>
+    <div class="tick" style="left:0%">10:00</div><div class="tick" style="left:28.6%">11:00</div><div class="tick" style="left:57.1%">12:00</div><div class="tick" style="left:85.7%">13:00</div><div class="tick" style="left:100%">13:30</div>
+    <div class="pt" style="left:0%;margin-left:44px"><b>10:00</b>準時進廠</div>
+    <div class="pt x low" style="left:7.1%"><b>10:15</b>想考慮一下<br>→ 被問「太貴？」</div>
+    <div class="pt" style="left:11.9%;margin-left:60px"><b>10:25</b>客人已決定</div>
+    <div class="pt x low" style="left:26.2%;width:200px"><b>10:55</b>第二次才有人來問<br>被告知「一點半才能拿車」，沒有代步車</div>
+    <div class="pt x" style="left:100%;margin-left:-44px"><b>13:30</b>取車　1★</div>
+  </div>
+  <div class="row" style="margin-top:4px">
+    <div class="card a" style="--d:1.2"><h3>① 話術</h3><div class="sub" style="color:var(--text)">「想考慮」≠「嫌貴」。被猜心、被催，感受很差。</div></div>
+    <div class="card a" style="--d:1.5"><h3>② 巡單</h3><div class="sub" style="color:var(--text)">決定後 30 分鐘沒人來問，客人只能枯坐。</div></div>
+    <div class="card a" style="--d:1.8"><h3>③ 預期</h3><div class="sub" style="color:var(--text)">取車時間接車時沒說，坐完才知道中午拿不到車。</div></div>
+  </div>
+  <div class="sub a" style="--d:2">※ 時間為客人自述，非系統紀錄。客人評價：買車服務很好、保養體驗扣分。</div>
+</section>
+
+<!-- 8 兩次進廠 -->
+<section class="scene" data-note="同一位客人、同一個廠、兩次進廠，兩種結果。第一次回家看收據才發現費用高得驚人；第二次，同樣推保養項目，先講清楚每一項是什麼、為什麼要做，客人不但買單，還寫拜託公司幫煜展加薪。客人抗拒的不是加購，是不明不白。">
+  <div class="tag a" style="--d:0">案例拆解 · 永康</div>
+  <h2 class="a" style="--d:.2">同一位客人、同一個廠：從「費用高得驚人」到「拜託幫他加薪」</h2>
+  <div class="row" style="align-items:stretch">
+    <div class="card center a" style="--d:.6"><h3>第一次進廠</h3><div class="big bad-c" style="font-size:clamp(22px,3.2vw,42px)">「費用高得驚人」</div>
+      <div class="sub" style="margin-top:10px">回家看收據才發現。加購沒被說明，或說了客人沒聽懂就簽了。</div></div>
+    <div class="a" style="--d:1.1;flex:0 0 50px;display:grid;place-items:center;font-size:44px;color:var(--gold)">→</div>
+    <div class="card center a" style="--d:1.6"><h3>第二次進廠</h3><div class="big good-c" style="font-size:clamp(22px,3.2vw,42px)">「拜託幫他加薪」</div>
+      <div class="sub" style="margin-top:10px">同樣推保養項目，先講清楚每一項是什麼、為什麼要做。客人買單，還主動推薦。</div></div>
+  </div>
+  <div class="row">
+    <div class="card a" style="--d:2.1"><h3>被客人指名的同仁（Google 評論）</h3>
+      <div class="bars"><div class="br me"><span>孫煜展</span><div class="t"><div class="f" style="--w:100%"></div></div><span class="v">3次</span></div>
+      <div class="br me"><span>李俊輝</span><div class="t"><div class="f" style="--w:67%"></div></div><span class="v">2次</span></div>
+      <div class="br me"><span>宋秉霖</span><div class="t"><div class="f" style="--w:33%"></div></div><span class="v">1次</span></div></div>
+      <div class="sub" style="margin-top:6px">另有銷售 2 位各 1 次。共 5 位、8 次（客戶提供 10 則樣本）。</div></div>
+    <div class="card a" style="--d:2.4"><h3>客人原話</h3>
+      <div class="q">每個保養項目都很清楚，站在顧客立場著想<small>孫煜展 · 5★</small></div>
+      <div class="q">人很 nice，大家可以指定他服務<small>李俊輝 · 5★</small></div></div>
+  </div>
+  <div class="cap a" style="--d:2.7">客人抗拒的不是加購，是「不明不白」。開口率靠的不是更強硬的話術，是講到客人自己點頭。</div>
+</section>
+
+<!-- 9 話術翻牌 -->
+<section class="scene" data-note="這一頁請大家自己點每張卡，翻過來看正確的說法。前兩張是簡報裡的正式改善方案，後面標註範例的，是我建議的說法，各廠可以調整成自己的口氣。">
+  <div class="tag a" style="--d:0">話術工作坊</div>
+  <h2 class="a" style="--d:.2">同一件事，換個說法客人感受完全不同<span class="pill" style="margin-left:10px">點卡片翻面</span></h2>
+  <div class="flips a" style="--d:.5" id="flips"></div>
+  <div class="cap a" style="--d:.9">前三張為簡報改善方案原文；標「範例」者是建議話術，請各廠調整成自己的口氣。</div>
+</section>
+
+<!-- 10 流程 -->
+<section class="scene" data-note="把前面所有改善串成一條線：從接車到邀評，七個節點，每個節點只守一件事。這頁會自動依序播放，你也可以點任何一個圓圈直接看。">
+  <div class="tag a" style="--d:0">標準作業流程</div>
+  <h2 class="a" style="--d:.2">從接車到邀評：七個節點，每個守一件事<span class="pill" style="margin-left:10px">可點擊</span></h2>
+  <div class="flow a" style="--d:.5" id="flow"><div class="prog" id="prog"></div></div>
+  <div class="card a" style="--d:.8"><div id="stinfo"></div></div>
+  <div class="cap a" style="--d:1.1">每個節點都對應簡報第 5、9 頁的改善方案。做到這七點，就補上我們輸的兩件事。</div>
+</section>
+
+<!-- 11 情境 -->
+<section class="scene" data-note="現在換你當接待或技師。三個模擬情境，每個選一個你會怎麼做，選完會告訴你為什麼。">
+  <div class="tag">情境演練 <span class="pill">模擬情境</span></div>
+  <div class="qp"><i id="sp"></i></div>
+  <h2 id="sqt"></h2><div class="sub" id="sqs"></div>
+  <div id="sqo"></div><div class="fb2" id="sqf"></div>
+  <div class="row"><button class="btn" id="sqn" style="display:none">下一題 ▶</button></div>
+</section>
+
+<!-- 12 目標 -->
+<section class="scene" data-note="目標有三個。負評率從 4.0% 壓到 3% 以下；價格類負評六個月內歸零；技師疑難案件百分之百有結案回覆。每個月用同樣方法重抓一次，下個月這時候報進度。最後請兩位廠長決定三件事，下面可以逐項打勾。">
+  <div class="tag a" style="--d:0">目標與追蹤</div>
+  <h2 class="a" style="--d:.2">三個目標、每月追蹤、請兩位廠長決定三件事</h2>
+  <div class="row">
+    <div class="card center a" style="--d:.5"><h3>1–2★ 負評率</h3><div class="big"><span class="gold-c">4.0%</span> <span style="font-size:.5em">→</span> <span class="good-c">&lt;3%</span></div></div>
+    <div class="card center a" style="--d:.7"><h3>價格類負評（6 個月內）</h3><div class="big"><span class="bad-c">5</span> <span style="font-size:.5em">→</span> <span class="good-c">0</span> <span style="font-size:.4em">則</span></div></div>
+    <div class="card center a" style="--d:.9"><h3>疑難案件結案回覆</h3><div class="big good-c">100%</div></div>
+  </div>
+  <div class="card a" style="--d:1.2"><h3>每月追蹤（沿用這次方法重抓）</h3><div class="sub" style="color:var(--text)">接待／結帳／技師 各自負評則數　·　負評 48 小時內回覆＋回訪　·　5★ 點名同仁排行，當月表揚　·　每月抽查 20 張定保單</div></div>
+  <div class="a" style="--d:1.5"><h3 style="color:var(--gold);font-size:16px;margin:4px 0">請決定三件事（點選打勾，僅本機暫存）</h3>
+    <div id="dec"></div></div>
+</section>
+
+<!-- 13 測驗 -->
+<section class="scene" id="quiz" data-note="最後是小測驗，九題。答錯的題目結束後會列出來，方便複習。">
+  <div class="tag">課後測驗</div>
+  <div class="qp"><i id="qp"></i></div>
+  <h2 id="qt"></h2>
+  <div id="qo"></div><div class="fb2" id="qf"></div>
+  <div class="row"><button class="btn" id="qn" style="display:none">下一題 ▶</button><button class="btn g" id="qr" style="display:none">重做一次</button></div>
+</section>
+
+</div>
+<div id="notes"></div>
+<footer>
+  <button class="c" id="prev">◀</button><div id="dots"></div><button class="c" id="next">▶</button>
+  <button class="c" id="auto">▶ 自動播放</button>
+  <button class="c" id="voice">🔈 朗讀：關</button>
+  <button class="c" id="nbtn">📝 講稿 (N)</button>
+  <button class="c" id="theme">☀ 亮色</button>
+  <button class="c" id="full">全螢幕 (F)</button>
+</footer>
+</div>
+
+<script>
+(function(){
+var $=function(s){return document.querySelector(s)};
+var scenes=[].slice.call(document.querySelectorAll('.scene')),N=scenes.length,cur=-1,timer=null,autoOn=false,voiceOn=false,flowT=null;
+function store(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
+var dots=$('#dots');
+scenes.forEach(function(_,i){var d=document.createElement('i');d.onclick=function(){stopAuto();go(i)};dots.appendChild(d)});
+
+/* 跳字 */
+function countUp(el){
+  var to=parseFloat(el.dataset.count),dec=+el.dataset.dec||0,fmt=el.dataset.fmt,t0=null;
+  function f(n){var s=n.toFixed(dec);return fmt?Number(s).toLocaleString('en-US'):s}
+  if(!to){el.textContent=f(0);return}
+  function step(t){if(!t0)t0=t;var p=Math.min((t-t0)/1400,1);el.textContent=f(to*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(step)}
+  requestAnimationFrame(step);
+}
+
+/* 熱度矩陣 */
+var MX=[
+ ['巧克力',[['1.6','7 則','h0','接待好評最多（點名好評是資產）。負評多為話術與取車時間；9/22 永康 1★ 是最新一則，尚未回覆。'],
+            ['1.2','5 則','h0','價格類負評 5 則，全在永康；主因是保養「加項」與報價不符。'],
+            ['1.6','7 則','h0','其中 4 則是留車查不出原因、2 則修不好。']]],
+ ['伸陽',[['2.1','3 則','h1','接待心不在焉也不紀錄，交代的沒修到。'],
+          ['2.1','3 則','h1','三萬公里定保 4,458 元被做到 8,524 元；原廠零件價比外面貴一倍；不修也要付檢查費。'],
+          ['5.0','7 則','h3','保養後出現原本沒有的問題 3、修不好 2、鈑噴／點漆品質 2。例：6 萬公里保養完開回家滿車汽油味。']]],
+ ['嘉田',[['8.1','12 則','h3','主要是：態度差（櫃檯聊天滑手機沒人理）4、取車時間變卦 4、電話打不通／被掛 2、說明不清 1。'],
+          ['0.0','0 則','h0','近兩年沒有結帳相關負評。'],
+          ['2.7','4 則','h2','保養後出現問題 1、修不好 2、鈑噴／點漆 1。']]]
+];
+(function(){
+  var g=$('#mx'),h='<div></div><div class="h">接待</div><div class="h">出納／結帳</div><div class="h">技師</div>';
+  MX.forEach(function(r,i){h+='<div class="rn">'+r[0]+'</div>';r[1].forEach(function(c,j){h+='<button class="cell '+c[2]+'" data-i="'+i+'" data-j="'+j+'"><b>'+c[0]+'</b><small>'+c[1]+'</small></button>'});});
+  g.innerHTML=h;
+  g.onclick=function(e){var b=e.target.closest('.cell');if(!b)return;
+    [].forEach.call(g.querySelectorAll('.cell'),function(x){x.classList.remove('sel')});b.classList.add('sel');
+    var r=MX[+b.dataset.i],c=r[1][+b.dataset.j];
+    $('#mxinfo').innerHTML='<b class="gold-c">'+r[0]+' × '+['接待','出納／結帳','技師'][+b.dataset.j]+'</b>：每百則 '+c[0]+'（'+c[1]+'）<br>'+c[3];};
+})();
+
+/* 覆核計算器 */
+function calc(){
+  var q=parseFloat($('#cq').value),p=parseFloat($('#cp').value),r=$('#res');
+  if(!(q>0)||isNaN(p)){r.className='';r.textContent='請輸入報價與實收金額';return}
+  var d=p-q,pc=d/q*100;
+  if(pc>=10){r.className='no';r.innerHTML='多收 '+Math.round(d).toLocaleString('en-US')+' 元（+'+pc.toFixed(1)+'%）<br>⚠ 超過 10%，須主管覆核才能結帳；並先確認每個加項都有客人同意紀錄。'}
+  else if(pc>0){r.className='ok';r.innerHTML='多收 '+Math.round(d).toLocaleString('en-US')+' 元（+'+pc.toFixed(1)+'%）<br>✔ 未達 10%，但仍要逐項複述、講清楚差額。'}
+  else{r.className='ok';r.innerHTML='✔ 實收未高於報價（'+pc.toFixed(1)+'%），交車時仍請逐項複述一次。'}
+}
+$('#cq').oninput=$('#cp').oninput=calc;
+[].forEach.call(document.querySelectorAll('.chip'),function(c){c.onclick=function(){$('#cq').value=c.dataset.q;$('#cp').value=c.dataset.p;calc()}});calc();
+
+/* 翻牌 */
+var FL=[
+ ['簡報禁語','「是不是覺得太貴？」','簡報改善方案','「哪幾項想再想想？我幫您分必要／可延後。」','客人說「想考慮」時使用'],
+ ['簡報禁語','（接車時沒講取車時間，客人坐完才知道中午拿不到）','簡報改善方案','接車時一句話說清「取車時間＋中午休息」，並寫在工單上。','超過 60 分鐘主動 LINE 進度，延誤前先打電話'],
+ ['簡報禁語','「沒遇到，請再觀察。」（留車 2 天仍無法重現）','簡報改善方案','主管打電話說明下一步，並把車列入反覆故障追蹤清單。','不能只說「沒遇到」'],
+ ['常見說法','「這個是必保菜單，一起做吧。」','範例話術','「這項是為了＿＿，約＿＿元，您要現在做、還是下次再做？」','先講項目、原因、金額，客人點頭才動工（範例）'],
+ ['常見說法','（結帳時直接報總額）','範例話術','「報價是 4,458，多了這兩項 ＿＿，是您剛才同意的，我對一下明細。」','交車逐項複述（範例）']
+];
+(function(){var h='';FL.forEach(function(f,i){h+='<div class="fc" data-i="'+i+'"><div class="fi"><div class="ff"><small>✘ '+f[0]+'</small><p>'+f[1]+'</p></div><div class="fb"><small>✔ '+f[2]+'</small><p>'+f[3]+'</p><em>'+f[4]+'</em></div></div></div>'});
+  $('#flips').innerHTML=h;$('#flips').onclick=function(e){var c=e.target.closest('.fc');if(c)c.classList.toggle('fl')}})();
+
+/* 流程 */
+var ST=[
+ ['接車','一句話說清「取車時間＋中午休息」，寫在工單上。客人的影片／照片／行車紀錄一併入工單。'],
+ ['估價','估價單分三色：<b style="color:var(--bad)">必要</b>／<b style="color:var(--gold)">建議</b>／<b style="color:var(--good)">可延後</b>。客人說「想考慮」→ 問「哪幾項想再想想」。'],
+ ['加項','追加項目一律先取得客人同意（LINE 或簽名）才施工：項目、原因、金額三件事。'],
+ ['施工','超過 60 分鐘主動 LINE 進度；延誤前先打電話；客人決定後主動回頭問，不讓人枯坐。'],
+ ['終檢','交車前終檢：試車＋異味異音檢查，終檢人簽名。疑難案件指定資深技師。'],
+ ['結帳','對著明細逐項複述再收錢；實收比報價多 10% 以上，須主管覆核才結帳。'],
+ ['邀評','保養交車是滿意度最高的時刻：邀評並請客人提到接待與工項；負評 48 小時內回覆＋回訪。']
+];
+var stI=-1;
+(function(){var f=$('#flow'),h='';ST.forEach(function(s,i){h+='<div class="st" data-i="'+i+'"><i>'+(i+1)+'</i>'+s[0]+'</div>'});f.insertAdjacentHTML('beforeend',h);
+  f.onclick=function(e){var s=e.target.closest('.st');if(s){clearInterval(flowT);flowT=null;stepTo(+s.dataset.i)}}})();
+function stepTo(i){stI=i;[].forEach.call(document.querySelectorAll('.st'),function(el,k){el.classList.toggle('on',k===i);el.classList.toggle('done',k<i)});
+  $('#prog').style.width=(i/(ST.length-1)*92)+'%';$('#stinfo').innerHTML='<b>'+(i+1)+'. '+ST[i][0]+'</b><p>'+ST[i][1]+'</p>'}
+function playFlow(){clearInterval(flowT);stepTo(0);flowT=setInterval(function(){if(stI>=ST.length-1){clearInterval(flowT);flowT=null;return}stepTo(stI+1)},2600)}
+
+/* 情境 */
+var SC=[
+ {s:'接車後 15 分鐘',q:'客人拿到估價單，說：「我想考慮一下。」',o:['「是不是覺得太貴？」','「哪幾項想再想想？我幫您分必要／可延後。」做完分類後告知「您決定了我再過來」','先走開，客人決定了自己會找你'],a:1,w:'「想考慮」≠「嫌貴」。分成必要／可延後給客人選擇權，並約定回來的時間，客人就不會枯坐。9/22 那則 1★ 就是這裡出事。'},
+ {s:'施工中',q:'技師拆輪胎時發現煞車來令片需更換，這不在預約工項內。',o:['先換，結帳時一起說明','先停手，向車主說明項目、原因、金額，同意（LINE 或簽名）才做','猜客人應該會同意，先做再說'],a:1,w:'先開口、後動手。回家看收據才發現，是「費用高得驚人」的來源。'},
+ {s:'取車前',q:'預估 12:00 取車，現在 13:00 還沒好，客人沒來問。',o:['等客人來問再解釋','在延誤前就打電話說明原因與新的取車時間','傳一句「請稍等」'],a:1,w:'簡報規定：超過 60 分鐘主動 LINE 進度，延誤前先打電話。不等客人問，是對手嘉田輸掉的地方。'}
+];
+var si=0;
+function showSc(){var d=SC[si],box=$('#sqo');$('#sp').style.width=((si)/SC.length*100)+'%';
+  $('#sqt').textContent=(si+1)+'/'+SC.length+'　'+d.q;$('#sqs').textContent='情境：'+d.s+'（模擬）';$('#sqf').textContent='';$('#sqn').style.display='none';box.innerHTML='';
+  d.o.forEach(function(t,k){var b=document.createElement('button');b.className='opt';b.textContent=String.fromCharCode(65+k)+'. '+t;
+    b.onclick=function(){var bs=box.children;[].forEach.call(bs,function(x){x.disabled=true});
+      if(k===d.a){b.classList.add('ok');$('#sqf').innerHTML='✔ 正確。'+d.w}else{b.classList.add('no');bs[d.a].classList.add('ok');$('#sqf').innerHTML='✘ 再想想。'+d.w}
+      $('#sqn').style.display='inline-block';$('#sqn').textContent=si===SC.length-1?'重新演練 ↺':'下一題 ▶';$('#sp').style.width=((si+1)/SC.length*100)+'%'};
+    box.appendChild(b)})}
+$('#sqn').onclick=function(){si=(si+1)%SC.length;showSc()};
+
+/* 決議 */
+var DEC=['9/22 永康那則 1★：今天回覆＋電話回訪','下個月起，加項一律客人同意才施工','同意每月用同樣方法重抓一次，下個月這時候報進度'];
+(function(){var h='';DEC.forEach(function(t,i){h+='<div class="chk'+(store('dec'+i)==='1'?' on':'')+'" data-i="'+i+'"><span class="bx"></span><span>'+(i+1)+'. '+t+'</span></div>'});
+  $('#dec').innerHTML=h;$('#dec').onclick=function(e){var c=e.target.closest('.chk');if(!c)return;c.classList.toggle('on');store('dec'+c.dataset.i,c.classList.contains('on')?'1':'0')}})();
+
+/* 測驗 */
+var Q=[
+ ['接車時，接待應該先做哪件事？',['馬上開始推薦加購項目','一句話說清「取車時間＋中午休息」並寫在工單上','等客人問取車時間再回答'],1,'取車時間講一次就算數，寫在工單上，才不會變卦。'],
+ ['實收比報價多多少以上，須主管覆核才能結帳？',['5%','10%','20%'],1,'簡報規定：多 10% 以上，須主管覆核。'],
+ ['施工超過幾分鐘，要主動 LINE 客人進度？',['30 分鐘','60 分鐘','120 分鐘'],1,'超過 60 分鐘主動 LINE；延誤前先打電話。'],
+ ['三法人中，嘉田的最大破口在哪個崗位？',['技師','出納／結帳','接待'],2,'嘉田接待負評每百則 8.1，三家最高。'],
+ ['巧克力的價格類負評共 5 則，全部發生在哪裡？',['歸仁','永康','嘉義'],1,'5 則全在永康，主因是保養加項與報價不符。'],
+ ['疑難故障留車幾天仍無法重現，必須由主管電話說明下一步？',['1 天','2 天','7 天'],1,'留車 2 天仍無法重現 → 主管打電話說明，不能只說「沒遇到」。'],
+ ['負評應該在多久內回覆＋回訪？',['24 小時','48 小時','一週'],1,'負評 48 小時內回覆＋回訪。'],
+ ['同一位客人從「費用高得驚人」變成「拜託幫他加薪」，關鍵差別是？',['給了折扣','加購前有沒有講清楚','換了一個廠'],1,'客人抗拒的不是加購，是不明不白。'],
+ ['每月要抽查幾張定保單，看有沒有「套餐」被偷偷加上去？',['10 張','20 張','50 張'],1,'每月抽查 20 張定保單。']
+];
+var qi=0,score=0,wrong=[],locked=false;
+function startQuiz(){qi=0;score=0;wrong=[];showQ()}
+function showQ(){locked=false;$('#qn').style.display='none';$('#qr').style.display='none';$('#qf').innerHTML='';
+  if(qi>=Q.length){$('#qp').style.width='100%';var pct=Math.round(score/Q.length*100);
+    var best=parseInt(store('best')||'0',10);if(score>best){store('best',String(score));best=score}
+    var rk=score===Q.length?'🏆 滿分！明天就能上線':score>=7?'👍 很熟了':score>=5?'📘 再看一次動畫':'🔁 建議從頭再看一遍';
+    $('#qt').textContent=rk+'　'+score+' / '+Q.length+'（'+pct+'%）';
+    $('#qo').innerHTML=wrong.length?'<div class="card"><h3>需要複習的題目</h3>'+wrong.map(function(i){return '<div class="q x">'+Q[i][0]+'<small>'+Q[i][3]+'</small></div>'}).join('')+'</div>':'';
+    $('#qf').textContent='本機最佳紀錄：'+best+' / '+Q.length;$('#qr').style.display='inline-block';return}
+  var d=Q[qi];$('#qp').style.width=(qi/Q.length*100)+'%';$('#qt').textContent=(qi+1)+'/'+Q.length+'　'+d[0];
+  var box=$('#qo');box.innerHTML='';
+  d[1].forEach(function(t,k){var b=document.createElement('button');b.className='opt';b.textContent=String.fromCharCode(65+k)+'. '+t;
+    b.onclick=function(){if(locked)return;locked=true;var bs=box.children;
+      if(k===d[2]){b.classList.add('ok');score++;$('#qf').innerHTML='✔ 答對了。'+d[3]}else{b.classList.add('no');bs[d[2]].classList.add('ok');wrong.push(qi);$('#qf').innerHTML='✘ 再想想。'+d[3]}
+      $('#qn').style.display='inline-block';$('#qn').textContent=qi===Q.length-1?'看結果 ▶':'下一題 ▶'};
+    box.appendChild(b)})}
+$('#qn').onclick=function(){qi++;showQ()};$('#qr').onclick=startQuiz;
+
+/* 導覽 */
+function say(t){if(!('speechSynthesis' in window))return;speechSynthesis.cancel();if(!voiceOn||!t)return;
+  var u=new SpeechSynthesisUtterance(t);u.lang='zh-TW';u.onend=function(){if(autoOn)timer=setTimeout(function(){go(cur+1)},900)};speechSynthesis.speak(u)}
+function go(i){
+  if(i<0||i>=N){stopAuto();return}
+  clearTimeout(timer);clearInterval(flowT);flowT=null;
+  scenes.forEach(function(s,k){s.classList.toggle('on',k===i)});
+  [].forEach.call(dots.children,function(d,k){d.classList.toggle('on',k===i)});
+  cur=i;$('#pg').textContent=(i+1)+' / '+N;$('#bar i').style.width=((i+1)/N*100)+'%';
+  var s=scenes[i];
+  [].forEach.call(s.querySelectorAll('[data-count]'),function(el){el.textContent='0';setTimeout(function(){countUp(el)},800)});
+  var note=s.dataset.note||'';$('#notes').innerHTML='<b>講稿：</b>'+note;
+  if(i===9)playFlow();
+  if(i===10){si=0;showSc()}
+  if(s.id==='quiz'){startQuiz()}
+  var interactive=(i===2||i===4||i===8||i===10||i===11||s.id==='quiz');
+  if(voiceOn&&note){say(note)}
+  else{if('speechSynthesis' in window)speechSynthesis.cancel();
+    if(autoOn&&!interactive)timer=setTimeout(function(){go(cur+1)},i===9?20000:i===6?15000:10000)}
+  if(autoOn&&interactive&&!voiceOn){stopAuto()}
+}
+function stopAuto(){autoOn=false;clearTimeout(timer);$('#auto').classList.remove('on');$('#auto').textContent='▶ 自動播放'}
+$('#prev').onclick=function(){stopAuto();go(cur-1)};$('#next').onclick=function(){stopAuto();go(cur+1)};
+$('#auto').onclick=function(){if(autoOn){stopAuto();return}autoOn=true;this.classList.add('on');this.textContent='⏸ 暫停';go(cur)};
+$('#voice').onclick=function(){if(!('speechSynthesis' in window)){alert('這個瀏覽器不支援朗讀，建議用 Chrome 或 Edge。');return}
+  voiceOn=!voiceOn;this.classList.toggle('on',voiceOn);this.textContent='🔈 朗讀：'+(voiceOn?'開':'關');if(voiceOn)go(cur);else speechSynthesis.cancel()};
+$('#nbtn').onclick=function(){$('#notes').classList.toggle('show');this.classList.toggle('on')};
+$('#theme').onclick=function(){var l=document.documentElement.dataset.theme!=='light';document.documentElement.dataset.theme=l?'light':'dark';this.textContent=l?'🌙 暗色':'☀ 亮色';store('theme',l?'light':'dark')};
+$('#full').onclick=function(){var e=document.documentElement;document.fullscreenElement?document.exitFullscreen():(e.requestFullscreen&&e.requestFullscreen())};
+document.addEventListener('keydown',function(e){
+  if(e.target.tagName==='INPUT')return;
+  if(e.key==='ArrowRight'||e.key==='PageDown'){stopAuto();go(cur+1)}
+  else if(e.key==='ArrowLeft'||e.key==='PageUp'){stopAuto();go(cur-1)}
+  else if(e.key==='n'||e.key==='N')$('#nbtn').click();
+  else if(e.key==='f'||e.key==='F')$('#full').click()});
+if(store('theme')==='light'){document.documentElement.dataset.theme='light';$('#theme').textContent='🌙 暗色'}
+go(0);
+})();
+</script>
+</body>
+</html>
