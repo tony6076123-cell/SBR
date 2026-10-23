@@ -3,6 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="近兩年 Google 評論：我們輸在哪、對手破口在哪、明天開始每個人該做什麼。含互動練習與小測驗。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="客人怎麼評我們的售後？｜解說動畫">
+<meta property="og:description" content="三法人 Google 評論比較、案例拆解、標準流程與小測驗（手機可看）">
 <title>售後三崗位 · 評論解說動畫（進階版）</title>
 <style>
 :root{
@@ -147,6 +151,14 @@ button.c:hover{border-color:var(--gold)}button.c.on{background:var(--gold);color
 #dots{display:flex;gap:6px;margin:0 8px}#dots i{width:9px;height:9px;border-radius:50%;background:var(--track);cursor:pointer}#dots i.on{background:var(--gold);transform:scale(1.3)}
 @media (prefers-reduced-motion:reduce){.a{opacity:1;transform:none}.scene.on .a{animation:none}body::before,body::after{animation:none}.scene{transition:opacity .2s;transform:none}}
 @media (max-width:640px){.scene{padding:16px 14px}.mx{grid-template-columns:60px repeat(3,1fr)}.calc{grid-template-columns:1fr}.pt{width:90px}.fc{height:240px}}
+@media (max-width:640px){
+ .tlw{height:auto;display:grid;gap:10px;margin:6px 0}
+ .tlw .ax,.tlw .gap,.tlw .tick{display:none}
+ .tlw .pt,.tlw .pt.low{position:static;transform:none;width:auto!important;margin:0!important;text-align:left;border-left:4px solid var(--blue);padding:4px 10px;font-size:15px}
+ .tlw .pt.x{border-left-color:var(--bad)}
+ .tlw .pt::after,.tlw .pt.low::before{display:none}
+ .tlw .pt b{display:inline;margin-right:8px}
+}
 </style>
 </head>
 <body>
